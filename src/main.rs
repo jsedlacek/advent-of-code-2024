@@ -26,13 +26,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     days.insert((1, 1), Box::new(day1::Part1));
     days.insert((1, 2), Box::new(day1::Part2));
 
-    let puzzles = days
+    let mut puzzles = days
         .iter()
         .filter(|((day, part), _)| {
             (args.day.is_none() || Some(*day) == args.day)
                 && (args.part.is_none() || Some(*part) == args.part)
         })
         .collect::<Vec<_>>();
+
+    puzzles.sort_by_key(|((day, part), _)| (*day, *part));
 
     if puzzles.is_empty() {
         return Err(format!("Puzzle not found").into());
