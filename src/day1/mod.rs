@@ -48,26 +48,27 @@ impl Puzzle for Part2 {
 }
 
 fn parse_input(input: &str) -> Result<[Vec<u64>; 2], Box<dyn Error>> {
-    let (list1, list2) = input
-        .trim()
+    let parsed_lines = input
         .lines()
-        .map(|line| {
-            let numbers = line
-                .split_whitespace()
-                .map(|s| s.parse::<u64>())
-                .collect::<Result<Vec<_>, _>>()?;
+        .map(parse_line)
+        .collect::<Result<Vec<_>, _>>()?;
 
-            if let [first, second] = numbers[..] {
-                Ok((first, second))
-            } else {
-                Err::<_, Box<dyn Error>>(format!("Invalid line: {line}").into())
-            }
-        })
-        .collect::<Result<Vec<_>, _>>()?
-        .into_iter()
-        .unzip();
+    let (list1, list2) = parsed_lines.into_iter().unzip();
 
     Ok([list1, list2])
+}
+
+fn parse_line(line: &str) -> Result<(u64, u64), Box<dyn Error>> {
+    let numbers = line
+        .split_whitespace()
+        .map(str::parse::<u64>)
+        .collect::<Result<Vec<_>, _>>()?;
+
+    if let [a, b] = &numbers[..] {
+        return Ok((*a, *b));
+    } else {
+        return Err(format!("Invalid line: {}", line).into());
+    }
 }
 
 #[cfg(test)]
