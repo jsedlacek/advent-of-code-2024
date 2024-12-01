@@ -53,17 +53,18 @@ fn parse_input(input: &str) -> Result<[Vec<u64>; 2], Box<dyn Error>> {
         .lines()
         .map(|line| {
             let numbers = line
-                .trim()
                 .split_whitespace()
                 .map(|s| s.parse::<u64>())
-                .collect::<Vec<_>>();
+                .collect::<Result<Vec<_>, _>>()?;
 
-            if let [Ok(first), Ok(second)] = numbers[..] {
-                (first, second)
+            if let [first, second] = numbers[..] {
+                Ok((first, second))
             } else {
-                panic!("Expected exactly two numbers per line");
+                Err::<_, Box<dyn Error>>(format!("Invalid line: {line}").into())
             }
         })
+        .collect::<Result<Vec<_>, _>>()?
+        .into_iter()
         .unzip();
 
     Ok([list1, list2])
