@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use crate::Puzzle;
 
 const INPUT: &str = include_str!("input.txt");
@@ -5,23 +7,23 @@ const INPUT: &str = include_str!("input.txt");
 pub struct Part1;
 
 impl Part1 {
-    fn solve_input(input: &str) -> u64 {
-        let [mut list1, mut list2] = parse_input(input);
+    fn solve_input(input: &str) -> Result<u64, Box<dyn Error>> {
+        let [mut list1, mut list2] = parse_input(input)?;
 
         list1.sort();
 
         list2.sort();
 
-        list1
+        Ok(list1
             .iter()
             .zip(list2.iter())
             .map(|(&a, &b)| ((a as i64) - (b as i64)).abs() as u64)
-            .sum()
+            .sum())
     }
 }
 
 impl Puzzle for Part1 {
-    fn solve(&self) -> u64 {
+    fn solve(&self) -> Result<u64, Box<dyn Error>> {
         Self::solve_input(INPUT)
     }
 }
@@ -29,23 +31,23 @@ impl Puzzle for Part1 {
 pub struct Part2;
 
 impl Part2 {
-    fn solve_input(input: &str) -> u64 {
-        let [list1, list2] = parse_input(input);
+    fn solve_input(input: &str) -> Result<u64, Box<dyn Error>> {
+        let [list1, list2] = parse_input(input)?;
 
-        list1
+        Ok(list1
             .iter()
             .map(|a| list2.iter().filter(|b| a == *b).count() as u64 * a)
-            .sum()
+            .sum())
     }
 }
 
 impl Puzzle for Part2 {
-    fn solve(&self) -> u64 {
+    fn solve(&self) -> Result<u64, Box<dyn Error>> {
         Self::solve_input(INPUT)
     }
 }
 
-fn parse_input(input: &str) -> [Vec<u64>; 2] {
+fn parse_input(input: &str) -> Result<[Vec<u64>; 2], Box<dyn Error>> {
     let (list1, list2) = input
         .trim()
         .lines()
@@ -64,7 +66,7 @@ fn parse_input(input: &str) -> [Vec<u64>; 2] {
         })
         .unzip();
 
-    [list1, list2]
+    Ok([list1, list2])
 }
 
 #[cfg(test)]
@@ -75,11 +77,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(Part1::solve_input(TEST_INPUT), 11);
+        assert_eq!(Part1::solve_input(TEST_INPUT).unwrap(), 11);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(Part2::solve_input(TEST_INPUT), 31);
+        assert_eq!(Part2::solve_input(TEST_INPUT).unwrap(), 31);
     }
 }

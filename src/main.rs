@@ -5,20 +5,20 @@ use std::collections::HashMap;
 use clap::Parser;
 
 pub trait Puzzle {
-    fn solve(&self) -> u64;
+    fn solve(&self) -> Result<u64, Box<dyn std::error::Error>>;
 }
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
     #[arg(short, long)]
-    day: u64,
+    day: Option<u64>,
 
-    #[arg(short, long, default_value_t = 1)]
-    part: u64,
+    #[arg(short, long)]
+    part: Option<u64>,
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
     let mut days: HashMap<(u64, u64), Box<dyn Puzzle>> = HashMap::new();
@@ -26,13 +26,21 @@ fn main() {
     days.insert((1, 1), Box::new(day1::Part1));
     days.insert((1, 2), Box::new(day1::Part2));
 
-    let day = days.get(&(args.day, args.part));
+    let puzzles = days
+        .iter()
+        .filter(|((day, part), _)| {
+            (args.day.is_none() || Some(*day) == args.day)
+                && (args.part.is_none() || Some(*part) == args.part)
+        })
+        .collect::<Vec<_>>();
 
-    if let Some(day) = day {
-        println!("Running day {} part {}", args.day, args.part,);
-
-        println!("Solution: {}", day.solve());
-    } else {
-        println!("Day {} part {} not implemented", args.day, args.part);
+    if puzzles.is_empty() {
+        return Err(format!("Puzzle not found").into());
     }
+
+    for ((day, part), puzzle) in puzzles {
+        println!("Day {day} part {part} = {}", puzzle.solve()?);
+    }
+
+    Ok(())
 }
