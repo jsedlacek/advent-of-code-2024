@@ -80,6 +80,6 @@ mod tests {
 
     #[test]
     fn test_part2() {
-        assert_eq!(Part2::solve_input(TEST_INPUT), 11);
+        assert_eq!(Part2::solve_input(TEST_INPUT), 31);
     }
 }
