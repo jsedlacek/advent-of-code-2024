@@ -42,28 +42,25 @@ fn part2(input: &str) -> u64 {
 }
 
 fn parse_input(input: &str) -> [Vec<u64>; 2] {
-    let lines = input
+    let (list1, list2) = input
         .trim()
         .lines()
         .map(|line| {
             let numbers = line
                 .trim()
                 .split_whitespace()
-                .map(|s| s.parse::<u64>().unwrap())
-                .collect::<Vec<u64>>();
+                .map(|s| s.parse::<u64>())
+                .collect::<Vec<_>>();
 
-            [numbers[0], numbers[1]]
+            if let [Ok(first), Ok(second)] = numbers[..] {
+                (first, second)
+            } else {
+                panic!("Expected exactly two numbers per line");
+            }
         })
-        .collect::<Vec<[u64; 2]>>();
+        .unzip();
 
-    let mut vec1 = Vec::new();
-    let mut vec2 = Vec::new();
-    for number_pair in lines.iter() {
-        vec1.push(number_pair[0]);
-        vec2.push(number_pair[1]);
-    }
-
-    [vec1, vec2]
+    [list1, list2]
 }
 
 #[cfg(test)]
