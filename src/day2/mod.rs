@@ -8,12 +8,8 @@ pub struct Part1;
 
 impl Part1 {
     fn solve_input(input: &str) -> Result<u64, Box<dyn Error>> {
-        let lines = parse_input(input)?;
-
-        Ok(lines
-            .iter()
-            .map(|numbers| if is_safe(numbers) { 1 } else { 0 })
-            .sum())
+        parse_input(input)
+            .map(|lines| lines.iter().filter(|&numbers| is_safe(numbers)).count() as u64)
     }
 }
 
@@ -27,12 +23,8 @@ pub struct Part2;
 
 impl Part2 {
     fn solve_input(input: &str) -> Result<u64, Box<dyn Error>> {
-        let lines = parse_input(input)?;
-
-        Ok(lines
-            .iter()
-            .map(|numbers| if is_safe_v2(numbers) { 1 } else { 0 })
-            .sum())
+        parse_input(input)
+            .map(|lines| lines.iter().filter(|&numbers| is_safe_v2(numbers)).count() as u64)
     }
 }
 
@@ -43,45 +35,35 @@ impl Puzzle for Part2 {
 }
 
 fn parse_input(input: &str) -> Result<Vec<Vec<u64>>, Box<dyn Error>> {
-    let lines = input
-        .lines()
-        .map(parse_line)
-        .collect::<Result<Vec<_>, _>>()?;
-
-    Ok(lines)
+    input.lines().map(parse_line).collect()
 }
 
 fn parse_line(line: &str) -> Result<Vec<u64>, Box<dyn Error>> {
-    let numbers = line
+    Ok(line
         .split_whitespace()
-        .map(str::parse::<u64>)
-        .collect::<Result<_, _>>()?;
-
-    Ok(numbers)
+        .map(str::parse)
+        .collect::<Result<_, _>>()?)
 }
 
 fn is_safe(numbers: &[u64]) -> bool {
-    let mut last_number = None;
     let mut last_direction = None;
 
-    for number in numbers {
-        if let Some(last_number) = last_number {
-            let diff = *number as i64 - last_number as i64;
+    for window in numbers.windows(2) {
+        let diff = window[1] as i64 - window[0] as i64;
 
-            if diff.abs() < 1 || diff.abs() > 3 {
-                return false;
-            }
-
-            if let Some(last_direction) = last_direction {
-                if last_direction != diff.signum() {
-                    return false;
-                }
-            }
-
-            last_direction = Some(diff.signum());
+        if diff == 0 || diff.abs() > 3 {
+            return false;
         }
 
-        last_number = Some(*number);
+        let current_direction = diff.signum();
+
+        if let Some(last_direction) = last_direction {
+            if last_direction != current_direction {
+                return false;
+            }
+        }
+
+        last_direction = Some(current_direction);
     }
 
     true
@@ -92,10 +74,10 @@ fn is_safe_v2(numbers: &[u64]) -> bool {
         return true;
     }
 
-    for (index, _) in numbers.iter().enumerate() {
-        let mut modified_numbers = numbers.to_vec();
-        modified_numbers.remove(index);
-        if is_safe(&modified_numbers) {
+    for index in 0..numbers.len() {
+        let mut numbers_copy = numbers.to_vec();
+        numbers_copy.remove(index);
+        if is_safe(&numbers_copy) {
             return true;
         }
     }
@@ -113,7 +95,7 @@ mod tests {
     fn test_parse_input() {
         assert_eq!(
             parse_input("1 2 3\n4 5 6").unwrap(),
-            vec![vec![1, 2, 3], vec![4, 5, 6],],
+            vec![vec![1, 2, 3], vec![4, 5, 6]],
         );
     }
 
