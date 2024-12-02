@@ -2,6 +2,8 @@ use std::error::Error;
 
 use crate::Puzzle;
 
+const INPUT: &str = include_str!("input.txt");
+
 pub struct Part1;
 
 impl Part1 {
@@ -15,9 +17,26 @@ impl Part1 {
     }
 }
 
-const INPUT: &str = include_str!("input.txt");
-
 impl Puzzle for Part1 {
+    fn solve(&self) -> Result<u64, Box<dyn Error>> {
+        Self::solve_input(INPUT)
+    }
+}
+
+pub struct Part2;
+
+impl Part2 {
+    fn solve_input(input: &str) -> Result<u64, Box<dyn Error>> {
+        let lines = parse_input(input)?;
+
+        Ok(lines
+            .iter()
+            .map(|numbers| if is_safe_v2(numbers) { 1 } else { 0 })
+            .sum())
+    }
+}
+
+impl Puzzle for Part2 {
     fn solve(&self) -> Result<u64, Box<dyn Error>> {
         Self::solve_input(INPUT)
     }
@@ -68,6 +87,22 @@ fn is_safe(numbers: &[u64]) -> bool {
     true
 }
 
+fn is_safe_v2(numbers: &[u64]) -> bool {
+    if is_safe(numbers) {
+        return true;
+    }
+
+    for (index, _) in numbers.iter().enumerate() {
+        let mut modified_numbers = numbers.to_vec();
+        modified_numbers.remove(index);
+        if is_safe(&modified_numbers) {
+            return true;
+        }
+    }
+
+    false
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -97,5 +132,10 @@ mod tests {
     #[test]
     fn test_part1() {
         assert_eq!(Part1::solve_input(TEST_INPUT).unwrap(), 2);
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(Part2::solve_input(TEST_INPUT).unwrap(), 4);
     }
 }
