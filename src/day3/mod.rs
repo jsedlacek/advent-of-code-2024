@@ -3,9 +3,9 @@ use std::error::Error;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take},
-    character::complete::{self, u64},
-    combinator::{flat_map, map, map_opt},
-    multi::{self, many0},
+    character::complete::u64,
+    combinator::map,
+    multi::many0,
     IResult,
 };
 
@@ -19,7 +19,17 @@ impl Part1 {
     fn solve_input(input: &str) -> Result<u64, Box<dyn Error>> {
         let (_, list) = parse_input(input).unwrap();
 
-        Ok(list.iter().map(|i| i.0 * i.1).sum::<u64>())
+        Ok(list
+            .iter()
+            .filter_map(|i| {
+                if let Instruction::Mul(m) = i {
+                    Some(m)
+                } else {
+                    None
+                }
+            })
+            .map(|i| i.0 * i.1)
+            .sum::<u64>())
     }
 }
 
@@ -29,17 +39,63 @@ impl Puzzle for Part1 {
     }
 }
 
+pub struct Part2;
+
+impl Part2 {
+    fn solve_input(input: &str) -> Result<u64, Box<dyn Error>> {
+        let (_, list) = parse_input(input).unwrap();
+
+        let mut enabled = true;
+
+        Ok(list
+            .iter()
+            .filter_map(|i| match i {
+                Instruction::Mul(m) => {
+                    if enabled {
+                        Some(m)
+                    } else {
+                        None
+                    }
+                }
+                Instruction::Void => None,
+                Instruction::Do => {
+                    enabled = true;
+                    None
+                }
+                Instruction::Dont => {
+                    enabled = false;
+                    None
+                }
+            })
+            .map(|i| i.0 * i.1)
+            .sum::<u64>())
+    }
+}
+
+impl Puzzle for Part2 {
+    fn solve(&self) -> Result<u64, Box<dyn Error>> {
+        Self::solve_input(INPUT)
+    }
+}
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 struct Mul(u64, u64);
 
-// xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5)) -> Mul
-// ignore everything other than mul
-fn parse_input(input: &str) -> IResult<&str, Vec<Mul>> {
-    let (input, list) = many0(alt((map(parse_mul, Some), map(take(1u64), |_| None))))(input)?;
+#[derive(Debug, PartialEq, Clone, Copy)]
+enum Instruction {
+    Mul(Mul),
+    Do,
+    Dont,
+    Void,
+}
 
-    let list = list.iter().filter_map(|x| *x).collect::<Vec<_>>();
-
-    Ok((input, list))
+fn parse_input(input: &str) -> IResult<&str, Vec<Instruction>> {
+    many0(alt((
+        map(parse_mul, Instruction::Mul),
+        map(tag("do()"), |_| Instruction::Do),
+        map(tag("don't()"), |_| Instruction::Dont),
+        map(take(1u64), |_| Instruction::Void),
+    )))(input)
 }
 
 fn parse_mul(input: &str) -> IResult<&str, Mul> {
@@ -57,19 +113,32 @@ mod tests {
     use super::*;
 
     const TEST_INPUT: &str = include_str!("test-input.txt");
+    const TEST_INPUT_2: &str = include_str!("test-input-2.txt");
 
     #[test]
     fn test_parse_input() {
-        let result = parse_input(TEST_INPUT);
+        let result = parse_input("mul(1,1)a;mul(2,2)");
         assert!(result.is_ok());
         let (remaining, result) = result.unwrap();
         assert_eq!(remaining, "");
-        assert_eq!(result.len(), 4);
-        assert_eq!(result, vec![Mul(2, 4), Mul(5, 5), Mul(11, 8), Mul(8, 5)]);
+        assert_eq!(
+            result,
+            vec![
+                Instruction::Mul(Mul(1, 1)),
+                Instruction::Void,
+                Instruction::Void,
+                Instruction::Mul(Mul(2, 2))
+            ]
+        );
     }
 
     #[test]
     fn test_part1() {
         assert_eq!(Part1::solve_input(TEST_INPUT).unwrap(), 161);
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(Part2::solve_input(TEST_INPUT_2).unwrap(), 48);
     }
 }
