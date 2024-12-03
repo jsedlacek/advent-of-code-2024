@@ -28,7 +28,7 @@ impl Part1 {
                     None
                 }
             })
-            .map(|i| i.0 * i.1)
+            .map(|i| i.solve())
             .sum::<u64>())
     }
 }
@@ -67,7 +67,7 @@ impl Part2 {
                     None
                 }
             })
-            .map(|i| i.0 * i.1)
+            .map(|i| i.solve())
             .sum::<u64>())
     }
 }
@@ -80,6 +80,12 @@ impl Puzzle for Part2 {
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 struct Mul(u64, u64);
+
+impl Mul {
+    fn solve(self) -> u64 {
+        self.0 * self.1
+    }
+}
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum Instruction {
