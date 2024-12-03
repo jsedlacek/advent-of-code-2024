@@ -17,7 +17,7 @@ pub struct Part1;
 
 impl Part1 {
     fn solve_input(input: &str) -> Result<u64, Box<dyn Error>> {
-        let (_, list) = parse_input(input).unwrap();
+        let (_, list) = parse_input(input).map_err(|e| e.to_owned())?;
 
         Ok(list
             .iter()
@@ -43,7 +43,7 @@ pub struct Part2;
 
 impl Part2 {
     fn solve_input(input: &str) -> Result<u64, Box<dyn Error>> {
-        let (_, list) = parse_input(input).unwrap();
+        let (_, list) = parse_input(input).map_err(|e| e.to_owned())?;
 
         let mut enabled = true;
 
