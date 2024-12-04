@@ -8,7 +8,7 @@ impl Part1 {
     fn solve_input(input: &str) -> u64 {
         let map = parse_input(input);
 
-        let directions = vec![
+        const DIRECTIONS: [(i64, i64); 8] = [
             (0, 1),
             (1, 0),
             (0, -1),
@@ -19,19 +19,10 @@ impl Part1 {
             (-1, 1),
         ];
 
-        let mut count = 0;
-
-        for y in 0..map.len() {
-            for x in 0..map[0].len() {
-                for direction in directions.iter() {
-                    if has_match(&map, (x, y), *direction) {
-                        count += 1;
-                    }
-                }
-            }
-        }
-
-        count
+        iter_2d(&map)
+            .flat_map(|(x, y)| DIRECTIONS.iter().map(move |&direction| (x, y, direction)))
+            .filter(|&(x, y, direction)| has_match(&map, (x, y), direction))
+            .count() as u64
     }
 }
 
@@ -47,17 +38,9 @@ impl Part2 {
     fn solve_input(input: &str) -> u64 {
         let map = parse_input(input);
 
-        let mut count = 0;
-
-        for y in 0..map.len() {
-            for x in 0..map[0].len() {
-                if has_match_part2(&map, (x, y)) {
-                    count += 1;
-                }
-            }
-        }
-
-        count
+        iter_2d(&map)
+            .filter(|&(x, y)| has_match_part2(&map, (x, y)))
+            .count() as u64
     }
 }
 
@@ -68,19 +51,19 @@ impl Puzzle for Part2 {
 }
 
 fn has_match(map: &Vec<Vec<char>>, pos: (usize, usize), direction: (i64, i64)) -> bool {
-    const WORD: &str = "XMAS";
+    const NEEDLE: &str = "XMAS";
 
     let (x, y) = pos;
     let (dx, dy) = direction;
 
-    let new_x = x as i64 + dx * (WORD.len() - 1) as i64;
-    let new_y = y as i64 + dy * (WORD.len() - 1) as i64;
+    let new_x = x as i64 + dx * (NEEDLE.len() - 1) as i64;
+    let new_y = y as i64 + dy * (NEEDLE.len() - 1) as i64;
 
     if new_x < 0 || new_x >= map[0].len() as i64 || new_y < 0 || new_y >= map.len() as i64 {
         return false;
     }
 
-    for (i, c) in WORD.chars().enumerate() {
+    for (i, c) in NEEDLE.chars().enumerate() {
         if map[(y as i64 + i as i64 * dy) as usize][(x as i64 + i as i64 * dx) as usize] != c {
             return false;
         }
@@ -119,6 +102,12 @@ fn parse_input(input: &str) -> Vec<Vec<char>> {
         .lines()
         .map(|line| line.chars().collect::<Vec<_>>())
         .collect()
+}
+
+fn iter_2d<T>(map: &Vec<Vec<T>>) -> impl Iterator<Item = (usize, usize)> + '_ {
+    map.iter()
+        .enumerate()
+        .flat_map(|(y, row)| row.iter().enumerate().map(move |(x, _)| (x, y)))
 }
 
 #[cfg(test)]
