@@ -19,7 +19,7 @@ impl Part1 {
     fn solve_input(input: &str) -> Result<u64, Box<dyn std::error::Error>> {
         let mut game = Game::parse(input)?;
 
-        match game.run()? {
+        match game.play()? {
             GameResult::Done(len) => Ok(len),
             GameResult::Loop => Err("Loop".into()),
         }
@@ -38,15 +38,19 @@ impl Part2 {
     fn solve_input(input: &str) -> Result<u64, Box<dyn std::error::Error>> {
         let game = Game::parse(input)?;
 
+        let mut ran_game = game.clone();
+        ran_game.play()?;
+
         Ok(game
             .map
-            .keys()
-            .filter(|&&pos| pos != game.guard_pos)
-            .filter(|&pos| game.map.get(pos) == Some(&Tile::Empty))
-            .filter(|&&pos| {
+            .iter()
+            .filter(|(&pos, _)| pos != game.guard_pos)
+            .filter(|(_, &tile)| tile == Tile::Empty)
+            .filter(|(pos, _)| ran_game.visited_positions.contains(pos))
+            .filter(|(&pos, _)| {
                 let mut game = game.clone();
                 game.map.insert(pos, Tile::Wall);
-                match game.run() {
+                match game.play() {
                     Ok(GameResult::Loop) => true,
                     _ => false,
                 }
@@ -136,7 +140,7 @@ impl Game {
         }
     }
 
-    fn run(&mut self) -> Result<GameResult, Box<dyn std::error::Error>> {
+    fn play(&mut self) -> Result<GameResult, Box<dyn std::error::Error>> {
         loop {
             match self.progress() {
                 ProgressResult::Continue => {}
