@@ -87,7 +87,7 @@ impl Part1 {
 
         let mut dir = Direction::Up;
 
-        while map.contains_key(&guard_pos) {
+        loop {
             set.insert(guard_pos.clone());
             if let Some((next_dir, next_pos)) = next_pos(&map, dir, guard_pos) {
                 dir = next_dir;
