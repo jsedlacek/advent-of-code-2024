@@ -95,11 +95,9 @@ impl RuleSet {
             update.0.iter().enumerate().map(|(i, &x)| (x, i)).collect();
 
         for &(a, b) in &self.precedence {
-            if let Some(&pos_a) = positions.get(&a) {
-                if let Some(&pos_b) = positions.get(&b) {
-                    if pos_a >= pos_b {
-                        return false;
-                    }
+            if let (Some(&pos_a), Some(&pos_b)) = (positions.get(&a), positions.get(&b)) {
+                if pos_a >= pos_b {
+                    return false;
                 }
             }
         }
