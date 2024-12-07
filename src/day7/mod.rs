@@ -12,7 +12,7 @@ impl Part1 {
 
         Ok(equations
             .iter()
-            .filter(|eq| eq.is_valid())
+            .filter(|eq| eq.is_valid(Version::V1))
             .map(|eq| eq.result)
             .sum())
     }
@@ -24,14 +24,40 @@ impl Puzzle for Part1 {
     }
 }
 
+pub struct Part2;
+
+impl Part2 {
+    fn solve_input(input: &str) -> Result<u64, Box<dyn std::error::Error>> {
+        let (_, equations) = parse::parse(input).map_err(|e| e.to_owned())?;
+
+        Ok(equations
+            .iter()
+            .filter(|eq| eq.is_valid(Version::V2))
+            .map(|eq| eq.result)
+            .sum())
+    }
+}
+
+impl Puzzle for Part2 {
+    fn solve(&self) -> Result<u64, Box<dyn std::error::Error>> {
+        Self::solve_input(INPUT)
+    }
+}
+
 #[derive(Debug, PartialEq)]
 struct Equation {
     result: u64,
     numbers: Vec<u64>,
 }
 
+#[derive(Debug, PartialEq, Clone, Copy)]
+enum Version {
+    V1,
+    V2,
+}
+
 impl Equation {
-    fn is_valid(&self) -> bool {
+    fn is_valid(&self, version: Version) -> bool {
         match self.numbers[..] {
             [n] => self.result == n,
             [.., n] => {
@@ -42,7 +68,7 @@ impl Equation {
                         result: self.result - n,
                         numbers: rest_numbers.clone(),
                     };
-                    if add_eq.is_valid() {
+                    if add_eq.is_valid(version) {
                         return true;
                     }
                 }
@@ -50,10 +76,29 @@ impl Equation {
                 if self.result % n == 0 {
                     let mul_eq = Equation {
                         result: self.result / n,
+                        numbers: rest_numbers.clone(),
+                    };
+
+                    if mul_eq.is_valid(version) {
+                        return true;
+                    }
+                }
+
+                let result_str = self.result.to_string();
+                if version == Version::V2
+                    && n != self.result
+                    && result_str.ends_with(&n.to_string())
+                {
+                    let next_result = result_str[..result_str.len() - n.to_string().len()]
+                        .parse::<u64>()
+                        .unwrap();
+
+                    let concat_eq = Equation {
+                        result: next_result,
                         numbers: rest_numbers,
                     };
 
-                    if mul_eq.is_valid() {
+                    if concat_eq.is_valid(version) {
                         return true;
                     }
                 }
@@ -78,29 +123,46 @@ mod tests {
             result: 1,
             numbers: vec![1],
         }
-        .is_valid());
+        .is_valid(Version::V1));
 
         assert!(!Equation {
             result: 1,
             numbers: vec![2],
         }
-        .is_valid());
+        .is_valid(Version::V1));
 
         assert!(Equation {
             result: 2,
             numbers: vec![1, 1],
         }
-        .is_valid());
+        .is_valid(Version::V1));
 
         assert!(Equation {
             result: 8,
             numbers: vec![2, 2, 2],
         }
-        .is_valid());
+        .is_valid(Version::V1));
+
+        assert!(!Equation {
+            result: 192,
+            numbers: vec![17, 8, 14],
+        }
+        .is_valid(Version::V1));
+
+        assert!(Equation {
+            result: 192,
+            numbers: vec![17, 8, 14],
+        }
+        .is_valid(Version::V2));
     }
 
     #[test]
-    fn test_solve_input() {
+    fn test_solve_part1() {
         assert_eq!(Part1::solve_input(TEST_INPUT).unwrap(), 3749);
+    }
+
+    #[test]
+    fn test_solve_part2() {
+        assert_eq!(Part2::solve_input(TEST_INPUT).unwrap(), 11387);
     }
 }
