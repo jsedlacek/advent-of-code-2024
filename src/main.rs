@@ -10,7 +10,7 @@ mod day7;
 mod day8;
 mod day9;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Instant};
 
 use clap::Parser;
 
@@ -67,7 +67,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     for ((day, part), puzzle) in puzzles {
-        println!("Day {day} part {part} = {}", puzzle.solve()?);
+        let now = Instant::now();
+        let result = puzzle.solve()?;
+        let elapsed = now.elapsed();
+
+        print!("Day {day} part {part} = {}", result);
+
+        if elapsed.as_millis() > 100 {
+            let ms = elapsed.as_millis();
+            print!(" [{ms}ms]");
+        }
+
+        println!();
     }
 
     Ok(())
