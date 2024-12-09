@@ -107,12 +107,12 @@ impl Game {
         let mut guard_pos = Point(0, 0);
 
         for (y, row) in tiles.iter().enumerate() {
-            for (x, tile) in row.iter().enumerate() {
-                if *tile == Tile::Guard {
+            for (x, &tile) in row.iter().enumerate() {
+                if tile == Tile::Guard {
                     guard_pos = Point(x as i64, y as i64);
                     map.insert(Point(x as i64, y as i64), Tile::Empty);
                 } else {
-                    map.insert(Point(x as i64, y as i64), *tile);
+                    map.insert(Point(x as i64, y as i64), tile);
                 }
             }
         }
