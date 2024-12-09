@@ -36,26 +36,27 @@ pub struct Part2;
 
 impl Part2 {
     fn solve_input(input: &str) -> Result<u64, Box<dyn std::error::Error>> {
-        let game = Game::parse(input)?;
+        let mut game = Game::parse(input)?;
 
-        let mut ran_game = game.clone();
-        ran_game.play()?;
+        let mut count = 0;
+        loop {
+            let wall_pos = game.guard_pos.add(&game.dir);
 
-        Ok(game
-            .map
-            .iter()
-            .filter(|(&pos, _)| pos != game.guard_pos)
-            .filter(|(_, &tile)| tile == Tile::Empty)
-            .filter(|(pos, _)| ran_game.visited_positions.contains(pos))
-            .filter(|(&pos, _)| {
-                let mut game = game.clone();
-                game.map.insert(pos, Tile::Wall);
-                match game.play() {
-                    Ok(GameResult::Loop) => true,
-                    _ => false,
+            if let Some(Tile::Empty) = game.map.get(&wall_pos) {
+                let mut modified_game = game.clone();
+                modified_game.map.insert(wall_pos, Tile::Wall);
+
+                if let Ok(GameResult::Loop) = modified_game.play() {
+                    count += 1;
                 }
-            })
-            .count() as u64)
+            }
+
+            if let ProgressResult::End = game.progress() {
+                break;
+            }
+        }
+
+        Ok(count)
     }
 }
 
