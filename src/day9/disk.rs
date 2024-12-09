@@ -10,46 +10,42 @@ impl Disk {
     }
 
     pub fn defragment(&mut self) {
-        let empty_blocks = self
+        let empty_blocks: Vec<_> = self
             .blocks
-            .clone()
-            .into_iter()
+            .iter()
             .enumerate()
-            .filter(|(_, b)| *b == DiskBlock::Empty)
-            .map(|(i, _)| i);
+            .filter(|(_, b)| **b == DiskBlock::Empty)
+            .map(|(i, _)| i)
+            .collect();
 
-        let file_blocks = self
+        let file_blocks: Vec<_> = self
             .blocks
-            .clone()
-            .into_iter()
+            .iter()
             .enumerate()
             .rev()
-            .filter(|(_, b)| match b {
-                DiskBlock::File(_) => true,
-                _ => false,
-            })
-            .map(|(i, _)| i);
+            .filter(|(_, b)| matches!(b, DiskBlock::File(_)))
+            .map(|(i, _)| i)
+            .collect();
 
-        for (i, j) in file_blocks.zip(empty_blocks) {
-            if i < j {
+        for (i, j) in file_blocks.iter().zip(empty_blocks.iter()) {
+            if *i < *j {
                 break;
             }
-
-            self.blocks.swap(i, j);
+            self.blocks.swap(*i, *j);
         }
     }
 
     pub fn defragment_v2(&mut self) {
         let mut files: Vec<_> = self.find_files().into_iter().collect();
-        files.sort_by_key(|(id, _)| *id);
+        files.sort_unstable_by_key(|(id, _)| *id);
         files.reverse();
 
         for (_, file) in files {
             if let Some(empty_index) = self.find_empty_block(file.size) {
                 if empty_index < file.index {
-                    for i in 0..file.size {
-                        self.blocks.swap(empty_index + i, file.index + i);
-                    }
+                    let (start, end) = self.blocks.split_at_mut(file.index);
+                    start[empty_index..empty_index + file.size]
+                        .swap_with_slice(&mut end[..file.size]);
                 }
             }
         }
@@ -73,12 +69,14 @@ impl Disk {
     }
 
     fn find_files(&self) -> HashMap<usize, FileStat> {
-        let mut counts: HashMap<usize, FileStat> = HashMap::new();
+        let mut counts = HashMap::new();
 
         for (index, block) in self.blocks.iter().enumerate() {
             if let DiskBlock::File(id) = block {
-                let entry = counts.entry(*id).or_insert(FileStat { index, size: 0 });
-                entry.size += 1;
+                counts
+                    .entry(*id)
+                    .or_insert_with(|| FileStat { index, size: 0 })
+                    .size += 1;
             }
         }
 
