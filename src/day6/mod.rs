@@ -42,18 +42,17 @@ impl Part2 {
         let mut game = Game::parse(input)?;
 
         let mut count = 0;
+
         loop {
-            let next_pos = game.next_move();
+            if let Some((_, pos)) = game.next_move() {
+                if game.map.get(&pos) == Some(&Tile::Empty)
+                    && !game.visited_positions.contains(&pos)
+                {
+                    let mut modified_game = game.clone();
+                    modified_game.map.insert(pos, Tile::Wall);
 
-            if let Some((_, pos)) = next_pos {
-                if game.map.get(&pos) == Some(&Tile::Empty) {
-                    if !game.visited_positions.contains(&pos) {
-                        let mut modified_game = game.clone();
-                        modified_game.map.insert(pos, Tile::Wall);
-
-                        if modified_game.play() == GameResult::Loop {
-                            count += 1;
-                        }
+                    if modified_game.play() == GameResult::Loop {
+                        count += 1;
                     }
                 }
             }
