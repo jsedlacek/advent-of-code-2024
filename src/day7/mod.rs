@@ -58,15 +58,13 @@ enum Version {
 
 impl Equation {
     fn is_valid(&self, version: Version) -> bool {
-        match self.numbers[..] {
-            [n] => self.result == n,
-            [.., n] => {
-                let rest_numbers = self.numbers[..self.numbers.len() - 1].to_vec();
-
-                if n <= self.result {
+        match &self.numbers[..] {
+            [n] => self.result == *n,
+            [rest_numbers @ .., n] => {
+                if *n <= self.result {
                     let add_eq = Equation {
                         result: self.result - n,
-                        numbers: rest_numbers.clone(),
+                        numbers: rest_numbers.to_vec(),
                     };
                     if add_eq.is_valid(version) {
                         return true;
@@ -76,7 +74,7 @@ impl Equation {
                 if self.result % n == 0 {
                     let mul_eq = Equation {
                         result: self.result / n,
-                        numbers: rest_numbers.clone(),
+                        numbers: rest_numbers.to_vec(),
                     };
 
                     if mul_eq.is_valid(version) {
@@ -86,7 +84,7 @@ impl Equation {
 
                 let result_str = self.result.to_string();
                 if version == Version::V2
-                    && n != self.result
+                    && *n != self.result
                     && result_str.ends_with(&n.to_string())
                 {
                     let next_result = result_str[..result_str.len() - n.to_string().len()]
@@ -95,7 +93,7 @@ impl Equation {
 
                     let concat_eq = Equation {
                         result: next_result,
-                        numbers: rest_numbers,
+                        numbers: rest_numbers.to_vec(),
                     };
 
                     if concat_eq.is_valid(version) {
