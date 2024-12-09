@@ -1,11 +1,5 @@
 use std::collections::HashMap;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum DiskBlock {
-    Empty,
-    File(usize),
-}
-
 pub struct Disk {
     pub blocks: Vec<DiskBlock>,
 }
@@ -50,11 +44,11 @@ impl Disk {
         files.sort_by_key(|(id, _)| *id);
         files.reverse();
 
-        for (_, (file_index, file_len)) in files {
-            if let Some(empty_index) = self.find_empty_block(file_len) {
-                if empty_index < file_index {
-                    for i in 0..file_len {
-                        self.blocks.swap(empty_index + i, file_index + i);
+        for (_, file) in files {
+            if let Some(empty_index) = self.find_empty_block(file.size) {
+                if empty_index < file.index {
+                    for i in 0..file.size {
+                        self.blocks.swap(empty_index + i, file.index + i);
                     }
                 }
             }
@@ -78,16 +72,27 @@ impl Disk {
             .position(|window| window.iter().all(|b| *b == DiskBlock::Empty))
     }
 
-    fn find_files(&self) -> HashMap<usize, (usize, usize)> {
-        let mut counts: HashMap<usize, (usize, usize)> = HashMap::new();
+    fn find_files(&self) -> HashMap<usize, FileStat> {
+        let mut counts: HashMap<usize, FileStat> = HashMap::new();
 
         for (index, block) in self.blocks.iter().enumerate() {
             if let DiskBlock::File(id) = block {
-                let (_, size) = counts.entry(*id).or_insert((index, 0));
-                *size += 1;
+                let entry = counts.entry(*id).or_insert(FileStat { index, size: 0 });
+                entry.size += 1;
             }
         }
 
         counts
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum DiskBlock {
+    Empty,
+    File(usize),
+}
+
+struct FileStat {
+    index: usize,
+    size: usize,
 }
