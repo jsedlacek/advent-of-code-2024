@@ -41,13 +41,16 @@ impl Disk {
         files.sort_unstable_by_key(|&(id, _)| id);
         files.reverse();
 
+        let mut last_empty_index = 0;
+
         for (_, file) in files {
-            if let Some(empty_index) = self.find_empty_block(file.size) {
+            if let Some(empty_index) = self.find_empty_block(file.size, last_empty_index) {
                 if empty_index < file.index {
                     let (start, end) = self.blocks.split_at_mut(file.index);
                     start[empty_index..empty_index + file.size]
                         .swap_with_slice(&mut end[..file.size]);
                 }
+                last_empty_index = empty_index + file.size;
             }
         }
     }
@@ -63,10 +66,26 @@ impl Disk {
             .sum()
     }
 
-    fn find_empty_block(&self, file_len: usize) -> Option<usize> {
-        self.blocks
-            .windows(file_len)
-            .position(|window| window.iter().all(|&b| b == DiskBlock::Empty))
+    fn find_empty_block(&self, file_len: usize, start_index: usize) -> Option<usize> {
+        let mut empty_start_index = None;
+
+        for (i, &block) in self.blocks[start_index..].iter().enumerate() {
+            if let DiskBlock::Empty = block {
+                if empty_start_index.is_none() {
+                    empty_start_index = Some(i);
+                }
+            } else {
+                empty_start_index = None;
+            }
+
+            if let Some(start_index) = empty_start_index {
+                if start_index + file_len - 1 == i {
+                    return Some(start_index);
+                }
+            }
+        }
+
+        None
     }
 
     fn find_files(&self) -> HashMap<usize, FileStat> {
