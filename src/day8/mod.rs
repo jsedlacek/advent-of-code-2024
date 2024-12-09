@@ -58,16 +58,16 @@ impl Part2 {
                 if let [a, b] = i[..] {
                     let diff = b - a;
 
-                    let mut antinode = a - diff;
+                    let mut antinode = a;
                     while set.contains(&antinode) {
                         antinodes.insert(antinode);
-                        antinode = antinode - diff;
+                        antinode -= diff;
                     }
 
-                    let mut antinode = b - diff;
+                    let mut antinode = b;
                     while set.contains(&antinode) {
                         antinodes.insert(antinode);
-                        antinode = antinode + diff;
+                        antinode += diff;
                     }
                 }
             }
@@ -95,10 +95,10 @@ fn get_antenas(map: &[Vec<Tile>]) -> HashMap<char, Vec<Point>> {
     let mut antenas = HashMap::new();
 
     for (x, row) in map.iter().enumerate() {
-        for (y, tile) in row.iter().enumerate() {
+        for (y, &tile) in row.iter().enumerate() {
             if let Tile::Antenna(c) = tile {
                 antenas
-                    .entry(*c)
+                    .entry(c)
                     .or_insert_with(Vec::new)
                     .push(Point(x as i64, y as i64));
             }
