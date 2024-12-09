@@ -5,7 +5,7 @@ use nom::{
     IResult,
 };
 
-use super::disk::{Block, Disk};
+use super::disk::{Disk, DiskBlock};
 
 pub fn parse_disk(input: &str) -> IResult<&str, Disk> {
     map(many1(parse_digit), |a| {
@@ -19,8 +19,8 @@ pub fn parse_disk(input: &str) -> IResult<&str, Disk> {
                     _ => unreachable!(),
                 };
 
-                let files = std::iter::repeat(Block::File(id)).take(file_size as usize);
-                let free_space = std::iter::repeat(Block::Empty).take(free_size as usize);
+                let files = std::iter::repeat(DiskBlock::File(id)).take(file_size as usize);
+                let free_space = std::iter::repeat(DiskBlock::Empty).take(free_size as usize);
 
                 files.chain(free_space)
             })
@@ -48,7 +48,7 @@ mod tests {
         assert_eq!(disk.blocks.len(), 3);
         assert_eq!(
             disk.blocks,
-            vec![Block::File(0), Block::Empty, Block::Empty]
+            vec![DiskBlock::File(0), DiskBlock::Empty, DiskBlock::Empty]
         );
     }
 }

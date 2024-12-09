@@ -45,7 +45,7 @@ impl Puzzle for Part2 {
 
 #[cfg(test)]
 mod tests {
-    use disk::{Block, Disk};
+    use disk::{Disk, DiskBlock};
 
     use super::*;
 
@@ -53,7 +53,11 @@ mod tests {
 
     #[test]
     fn test_checksum() {
-        let disk = Disk::new(vec![Block::File(1), Block::Empty, Block::File(2)]);
+        let disk = Disk::new(vec![
+            DiskBlock::File(1),
+            DiskBlock::Empty,
+            DiskBlock::File(2),
+        ]);
 
         assert_eq!(disk.checksum(), 4);
     }
