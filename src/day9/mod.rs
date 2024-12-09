@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use nom::{
     character::{complete::satisfy, is_digit},
     combinator::map,
@@ -9,7 +11,7 @@ use crate::Puzzle;
 
 const INPUT: &str = include_str!("input.txt");
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum Block {
     Empty,
     File(usize),
@@ -79,17 +81,12 @@ impl Disk {
     }
 
     fn defragment_v2(&mut self) {
-        let highest_file_index = self
-            .blocks
-            .iter()
-            .filter_map(|b| match b {
-                Block::File(id) => Some(*id),
-                _ => None,
-            })
-            .max()
-            .unwrap_or(0);
+        let mut indices = self.find_indices();
 
-        for id in (0..=highest_file_index).rev() {
+        indices.sort();
+        indices.reverse();
+
+        for id in indices {
             if let Some(file_index) = self.blocks.iter().position(|b| *b == Block::File(id)) {
                 let file_len = self
                     .blocks
@@ -124,6 +121,19 @@ impl Disk {
         self.blocks
             .windows(file_len)
             .position(|window| window.iter().all(|b| *b == Block::Empty))
+    }
+
+    fn find_indices(&self) -> Vec<usize> {
+        let indices: HashSet<usize> = self
+            .blocks
+            .iter()
+            .filter_map(|b| match b {
+                Block::File(id) => Some(*id),
+                _ => None,
+            })
+            .collect::<HashSet<_>>();
+
+        indices.into_iter().collect()
     }
 }
 
