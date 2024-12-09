@@ -9,7 +9,10 @@ use nom::{
     IResult,
 };
 
-use crate::Puzzle;
+use crate::{
+    util::{Direction, Point},
+    Puzzle,
+};
 
 const INPUT: &str = include_str!("input.txt");
 
@@ -40,7 +43,7 @@ impl Part2 {
 
         let mut count = 0;
         loop {
-            let wall_pos = game.guard_pos.add(&game.dir);
+            let wall_pos = game.guard_pos + game.dir;
 
             if let Some(Tile::Empty) = game.map.get(&wall_pos) {
                 let mut modified_game = game.clone();
@@ -101,15 +104,15 @@ impl Game {
         let (_, tiles) = parse_input(input).map_err(|e| e.to_owned())?;
 
         let mut map = HashMap::new();
-        let mut guard_pos = Point::new(0, 0);
+        let mut guard_pos = Point(0, 0);
 
         for (y, row) in tiles.iter().enumerate() {
             for (x, tile) in row.iter().enumerate() {
                 if *tile == Tile::Guard {
-                    guard_pos = Point::new(x as i64, y as i64);
-                    map.insert(Point::new(x as i64, y as i64), Tile::Empty);
+                    guard_pos = Point(x as i64, y as i64);
+                    map.insert(Point(x as i64, y as i64), Tile::Empty);
                 } else {
-                    map.insert(Point::new(x as i64, y as i64), *tile);
+                    map.insert(Point(x as i64, y as i64), *tile);
                 }
             }
         }
@@ -119,7 +122,7 @@ impl Game {
 
     fn progress(&mut self) -> ProgressResult {
         loop {
-            let new_pos = self.guard_pos.add(&self.dir);
+            let new_pos = self.guard_pos + self.dir;
 
             if let Some(Tile::Empty) = self.map.get(&new_pos) {
                 if self.visited_state.contains(&(self.dir, new_pos)) {
@@ -152,46 +155,6 @@ impl Game {
 
         self.visited_positions.insert(self.guard_pos);
         Ok(GameResult::Done(self.visited_positions.len() as u64))
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
-enum Direction {
-    Up,
-    Down,
-    Left,
-    Right,
-}
-
-impl Direction {
-    fn rotate(&self) -> Direction {
-        match self {
-            Direction::Up => Direction::Right,
-            Direction::Down => Direction::Left,
-            Direction::Left => Direction::Up,
-            Direction::Right => Direction::Down,
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
-struct Point {
-    x: i64,
-    y: i64,
-}
-
-impl Point {
-    fn new(x: i64, y: i64) -> Point {
-        Point { x, y }
-    }
-
-    fn add(&self, dir: &Direction) -> Point {
-        match dir {
-            Direction::Up => Point::new(self.x, self.y - 1),
-            Direction::Down => Point::new(self.x, self.y + 1),
-            Direction::Left => Point::new(self.x - 1, self.y),
-            Direction::Right => Point::new(self.x + 1, self.y),
-        }
     }
 }
 

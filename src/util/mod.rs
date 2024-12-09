@@ -32,3 +32,35 @@ impl SubAssign for Point {
         self.1 -= rhs.1;
     }
 }
+
+impl Add<Direction> for Point {
+    type Output = Point;
+
+    fn add(self, dir: Direction) -> Self::Output {
+        self + match dir {
+            Direction::Up => Point(0, -1),
+            Direction::Down => Point(0, 1),
+            Direction::Left => Point(-1, 0),
+            Direction::Right => Point(1, 0),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+pub enum Direction {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+impl Direction {
+    pub fn rotate(&self) -> Direction {
+        match self {
+            Direction::Up => Direction::Right,
+            Direction::Down => Direction::Left,
+            Direction::Left => Direction::Up,
+            Direction::Right => Direction::Down,
+        }
+    }
+}
