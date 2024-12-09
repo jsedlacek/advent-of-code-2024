@@ -27,11 +27,12 @@ impl Disk {
             .map(|(i, _)| i)
             .collect();
 
-        for (i, j) in file_blocks.iter().zip(empty_blocks.iter()) {
-            if *i < *j {
+        for (&i, &j) in file_blocks.iter().zip(empty_blocks.iter()) {
+            if i < j {
                 break;
             }
-            self.blocks.swap(*i, *j);
+
+            self.blocks.swap(i, j);
         }
     }
 
