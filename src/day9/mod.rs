@@ -25,21 +25,18 @@ impl Disk {
             let blocks = a
                 .chunks(2)
                 .enumerate()
-                .map(|(id, group)| match group {
-                    [file_size] => {
-                        let files = (0..*file_size).into_iter().map(|_| Block::File(id));
-                        files.collect::<Vec<_>>()
-                    }
-                    [file_size, free_size] => {
-                        let files = (0..*file_size).into_iter().map(|_| Block::File(id));
+                .flat_map(|(id, group)| {
+                    let (file_size, free_size) = match *group {
+                        [file_size] => (file_size, 0),
+                        [file_size, free_size] => (file_size, free_size),
+                        _ => unreachable!(),
+                    };
 
-                        let free_space = (0..*free_size).into_iter().map(|_| Block::Empty);
+                    let files = std::iter::repeat(Block::File(id)).take(file_size as usize);
+                    let free_space = std::iter::repeat(Block::Empty).take(free_size as usize);
 
-                        files.chain(free_space).collect::<Vec<_>>()
-                    }
-                    _ => unreachable!(),
+                    files.chain(free_space)
                 })
-                .flatten()
                 .collect::<Vec<_>>();
 
             Self { blocks }
@@ -54,28 +51,30 @@ impl Disk {
     }
 
     fn defragment(&mut self) {
-        loop {
-            let empty_index = self.blocks.iter().position(|b| *b == Block::Empty);
+        let empty_blocks = self
+            .blocks
+            .clone()
+            .into_iter()
+            .enumerate()
+            .filter(|(_, b)| *b == Block::Empty)
+            .map(|(i, _)| i);
 
-            let file_index = self
-                .blocks
-                .iter()
-                .enumerate()
-                .rev()
-                .find(|(_, b)| match b {
-                    Block::File(_) => true,
-                    _ => false,
-                })
-                .map(|(i, _)| i);
+        let file_blocks = self
+            .blocks
+            .clone()
+            .into_iter()
+            .enumerate()
+            .rev()
+            .filter(|(_, b)| match b {
+                Block::File(_) => true,
+                _ => false,
+            })
+            .map(|(i, _)| i);
 
-            if let (Some(empty_index), Some(file_index)) = (empty_index, file_index) {
-                if empty_index < file_index {
-                    self.blocks.swap(empty_index, file_index);
-                    continue;
-                }
+        for (i, j) in file_blocks.zip(empty_blocks) {
+            if i > j {
+                self.blocks.swap(i, j);
             }
-
-            break;
         }
     }
 
@@ -91,24 +90,19 @@ impl Disk {
             .unwrap_or(0);
 
         for id in (0..=highest_file_index).rev() {
-            let file_index = self.blocks.iter().position(|b| b == &Block::File(id));
+            if let Some(file_index) = self.blocks.iter().position(|b| *b == Block::File(id)) {
+                let file_len = self
+                    .blocks
+                    .iter()
+                    .skip(file_index)
+                    .take_while(|b| **b == Block::File(id))
+                    .count();
 
-            let file_len = file_index
-                .map(|file_index| {
-                    self.blocks
-                        .iter()
-                        .skip(file_index)
-                        .take_while(|b| **b == Block::File(id))
-                        .count()
-                })
-                .unwrap_or(0);
-
-            let empty_index = self.find_empty_block(file_len);
-
-            if let (Some(file_index), Some(empty_index)) = (file_index, empty_index) {
-                if empty_index < file_index {
-                    for i in 0..file_len {
-                        self.blocks.swap(empty_index + i, file_index + i);
+                if let Some(empty_index) = self.find_empty_block(file_len) {
+                    if empty_index < file_index {
+                        for i in 0..file_len {
+                            self.blocks.swap(empty_index + i, file_index + i);
+                        }
                     }
                 }
             }
@@ -127,24 +121,9 @@ impl Disk {
     }
 
     fn find_empty_block(&self, file_len: usize) -> Option<usize> {
-        let mut count = 0;
-
-        for (i, b) in self.blocks.iter().enumerate() {
-            match b {
-                Block::Empty => {
-                    count += 1;
-                }
-                _ => {
-                    count = 0;
-                }
-            }
-
-            if count == file_len {
-                return Some(i - count + 1);
-            }
-        }
-
-        None
+        self.blocks
+            .windows(file_len)
+            .position(|window| window.iter().all(|b| *b == Block::Empty))
     }
 }
 
