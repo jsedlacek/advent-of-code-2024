@@ -41,16 +41,17 @@ impl Disk {
         files.sort_unstable_by_key(|&(id, _)| id);
         files.reverse();
 
-        let mut last_empty_index = 0;
+        let mut last_indices = HashMap::new();
 
         for (_, file) in files {
-            if let Some(empty_index) = self.find_empty_block(file.size, last_empty_index) {
+            let last_index = last_indices.get(&file.size).copied().unwrap_or(0);
+            if let Some(empty_index) = self.find_empty_block(file.size, last_index) {
+                last_indices.insert(file.size, empty_index + file.size);
                 if empty_index < file.index {
                     let (start, end) = self.blocks.split_at_mut(file.index);
                     start[empty_index..empty_index + file.size]
                         .swap_with_slice(&mut end[..file.size]);
                 }
-                last_empty_index = empty_index + file.size;
             }
         }
     }
@@ -78,9 +79,9 @@ impl Disk {
                 empty_start_index = None;
             }
 
-            if let Some(start_index) = empty_start_index {
-                if start_index + file_len - 1 == i {
-                    return Some(start_index);
+            if let Some(empty_start_index) = empty_start_index {
+                if empty_start_index + file_len - 1 == i {
+                    return Some(start_index + empty_start_index);
                 }
             }
         }
