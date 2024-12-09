@@ -22,7 +22,7 @@ impl Part1 {
     fn solve_input(input: &str) -> Result<u64, Box<dyn std::error::Error>> {
         let mut game = Game::parse(input)?;
 
-        match game.play()? {
+        match game.play() {
             GameResult::Done(len) => Ok(len),
             GameResult::Loop => Err("Loop".into()),
         }
@@ -43,14 +43,18 @@ impl Part2 {
 
         let mut count = 0;
         loop {
-            let wall_pos = game.guard_pos + game.dir;
+            let next_pos = game.next_move();
 
-            if let Some(Tile::Empty) = game.map.get(&wall_pos) {
-                let mut modified_game = game.clone();
-                modified_game.map.insert(wall_pos, Tile::Wall);
+            if let Some((_, pos)) = next_pos {
+                if game.map.get(&pos) == Some(&Tile::Empty) {
+                    if !game.visited_positions.contains(&pos) {
+                        let mut modified_game = game.clone();
+                        modified_game.map.insert(pos, Tile::Wall);
 
-                if let Ok(GameResult::Loop) = modified_game.play() {
-                    count += 1;
+                        if modified_game.play() == GameResult::Loop {
+                            count += 1;
+                        }
+                    }
                 }
             }
 
@@ -84,6 +88,7 @@ enum ProgressResult {
     Loop,
 }
 
+#[derive(PartialEq, Eq)]
 enum GameResult {
     Done(u64),
     Loop,
@@ -120,42 +125,49 @@ impl Game {
         Ok(Game::new(map, guard_pos))
     }
 
-    fn progress(&mut self) -> ProgressResult {
+    fn next_move(&self) -> Option<(Direction, Point)> {
+        let mut dir = self.dir;
         loop {
-            let new_pos = self.guard_pos + self.dir;
+            let new_pos = self.guard_pos + dir;
 
-            if let Some(Tile::Empty) = self.map.get(&new_pos) {
-                if self.visited_state.contains(&(self.dir, new_pos)) {
-                    return ProgressResult::Loop;
-                }
-
-                self.guard_pos = new_pos;
-                self.visited_positions.insert(new_pos);
-                self.visited_state.insert((self.dir, new_pos));
-                return ProgressResult::Continue;
+            match self.map.get(&new_pos) {
+                Some(Tile::Empty) => return Some((dir, new_pos)),
+                Some(Tile::Wall) => dir = dir.rotate(),
+                _ => return None,
             }
-
-            if let Some(Tile::Wall) = self.map.get(&new_pos) {
-                self.dir = self.dir.rotate();
-                continue;
-            }
-
-            return ProgressResult::End;
         }
     }
 
-    fn play(&mut self) -> Result<GameResult, Box<dyn std::error::Error>> {
+    fn progress(&mut self) -> ProgressResult {
+        if let Some((dir, pos)) = self.next_move() {
+            if self.visited_state.contains(&(dir, pos)) {
+                return ProgressResult::Loop;
+            }
+
+            self.guard_pos = pos;
+            self.dir = dir;
+
+            self.visited_positions.insert(pos);
+            self.visited_state.insert((dir, pos));
+
+            return ProgressResult::Continue;
+        }
+
+        return ProgressResult::End;
+    }
+
+    fn play(&mut self) -> GameResult {
         self.visited_positions.insert(self.guard_pos);
 
         loop {
             match self.progress() {
                 ProgressResult::Continue => {}
                 ProgressResult::End => break,
-                ProgressResult::Loop => return Ok(GameResult::Loop),
+                ProgressResult::Loop => return GameResult::Loop,
             }
         }
 
-        Ok(GameResult::Done(self.visited_positions.len() as u64))
+        GameResult::Done(self.visited_positions.len() as u64)
     }
 }
 
