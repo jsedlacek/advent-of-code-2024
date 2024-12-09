@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Block {
@@ -37,27 +37,21 @@ impl Disk {
             .map(|(i, _)| i);
 
         for (i, j) in file_blocks.zip(empty_blocks) {
-            if i > j {
-                self.blocks.swap(i, j);
+            if i < j {
+                break;
             }
+
+            self.blocks.swap(i, j);
         }
     }
 
     pub fn defragment_v2(&mut self) {
-        let mut indices = self.find_indices();
+        let mut index_counts: Vec<_> = self.find_index_counts().into_iter().collect();
+        index_counts.sort_by_key(|(id, _)| *id);
+        index_counts.reverse();
 
-        indices.sort();
-        indices.reverse();
-
-        for id in indices {
+        for (id, file_len) in index_counts {
             if let Some(file_index) = self.blocks.iter().position(|b| *b == Block::File(id)) {
-                let file_len = self
-                    .blocks
-                    .iter()
-                    .skip(file_index)
-                    .take_while(|b| **b == Block::File(id))
-                    .count();
-
                 if let Some(empty_index) = self.find_empty_block(file_len) {
                     if empty_index < file_index {
                         for i in 0..file_len {
@@ -86,16 +80,15 @@ impl Disk {
             .position(|window| window.iter().all(|b| *b == Block::Empty))
     }
 
-    fn find_indices(&self) -> Vec<usize> {
-        let indices: HashSet<usize> = self
-            .blocks
-            .iter()
-            .filter_map(|b| match b {
-                Block::File(id) => Some(*id),
-                _ => None,
-            })
-            .collect::<HashSet<_>>();
+    fn find_index_counts(&self) -> HashMap<usize, usize> {
+        let mut counts: HashMap<usize, usize> = HashMap::new();
 
-        indices.into_iter().collect()
+        for block in self.blocks.iter() {
+            if let Block::File(id) = block {
+                *counts.entry(*id).or_insert(0) += 1;
+            }
+        }
+
+        counts
     }
 }
