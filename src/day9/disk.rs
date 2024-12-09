@@ -46,17 +46,15 @@ impl Disk {
     }
 
     pub fn defragment_v2(&mut self) {
-        let mut index_counts: Vec<_> = self.find_index_counts().into_iter().collect();
-        index_counts.sort_by_key(|(id, _)| *id);
-        index_counts.reverse();
+        let mut files: Vec<_> = self.find_files().into_iter().collect();
+        files.sort_by_key(|(id, _)| *id);
+        files.reverse();
 
-        for (id, file_len) in index_counts {
-            if let Some(file_index) = self.blocks.iter().position(|b| *b == DiskBlock::File(id)) {
-                if let Some(empty_index) = self.find_empty_block(file_len) {
-                    if empty_index < file_index {
-                        for i in 0..file_len {
-                            self.blocks.swap(empty_index + i, file_index + i);
-                        }
+        for (_, (file_index, file_len)) in files {
+            if let Some(empty_index) = self.find_empty_block(file_len) {
+                if empty_index < file_index {
+                    for i in 0..file_len {
+                        self.blocks.swap(empty_index + i, file_index + i);
                     }
                 }
             }
@@ -80,12 +78,13 @@ impl Disk {
             .position(|window| window.iter().all(|b| *b == DiskBlock::Empty))
     }
 
-    fn find_index_counts(&self) -> HashMap<usize, usize> {
-        let mut counts: HashMap<usize, usize> = HashMap::new();
+    fn find_files(&self) -> HashMap<usize, (usize, usize)> {
+        let mut counts: HashMap<usize, (usize, usize)> = HashMap::new();
 
-        for block in self.blocks.iter() {
+        for (index, block) in self.blocks.iter().enumerate() {
             if let DiskBlock::File(id) = block {
-                *counts.entry(*id).or_insert(0) += 1;
+                let (_, size) = counts.entry(*id).or_insert((index, 0));
+                *size += 1;
             }
         }
 
