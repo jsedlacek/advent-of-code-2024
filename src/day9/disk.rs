@@ -70,18 +70,18 @@ impl Disk {
     }
 
     fn find_files(&self) -> HashMap<usize, FileStat> {
-        let mut counts = HashMap::new();
+        let mut files = HashMap::new();
 
         for (index, &block) in self.blocks.iter().enumerate() {
             if let DiskBlock::File(id) = block {
-                counts
+                files
                     .entry(id)
                     .or_insert_with(|| FileStat { index, size: 0 })
                     .size += 1;
             }
         }
 
-        counts
+        files
     }
 }
 
