@@ -79,6 +79,42 @@ impl Disk {
         }
     }
 
+    fn defragment_v2(&mut self) {
+        let highest_file_index = self
+            .blocks
+            .iter()
+            .filter_map(|b| match b {
+                Block::File(id) => Some(*id),
+                _ => None,
+            })
+            .max()
+            .unwrap_or(0);
+
+        for id in (0..=highest_file_index).rev() {
+            let file_index = self.blocks.iter().position(|b| b == &Block::File(id));
+
+            let file_len = file_index
+                .map(|file_index| {
+                    self.blocks
+                        .iter()
+                        .skip(file_index)
+                        .take_while(|b| **b == Block::File(id))
+                        .count()
+                })
+                .unwrap_or(0);
+
+            let empty_index = self.find_empty_block(file_len);
+
+            if let (Some(file_index), Some(empty_index)) = (file_index, empty_index) {
+                if empty_index < file_index {
+                    for i in 0..file_len {
+                        self.blocks.swap(empty_index + i, file_index + i);
+                    }
+                }
+            }
+        }
+    }
+
     fn checksum(&self) -> u64 {
         self.blocks
             .iter()
@@ -88,6 +124,27 @@ impl Disk {
                 Block::File(id) => i as u64 * id as u64,
             })
             .sum()
+    }
+
+    fn find_empty_block(&self, file_len: usize) -> Option<usize> {
+        let mut count = 0;
+
+        for (i, b) in self.blocks.iter().enumerate() {
+            match b {
+                Block::Empty => {
+                    count += 1;
+                }
+                _ => {
+                    count = 0;
+                }
+            }
+
+            if count == file_len {
+                return Some(i - count + 1);
+            }
+        }
+
+        None
     }
 }
 
@@ -104,6 +161,24 @@ impl Part1 {
 }
 
 impl Puzzle for Part1 {
+    fn solve(&self) -> Result<u64, Box<dyn std::error::Error>> {
+        Self::solve_input(INPUT)
+    }
+}
+
+pub struct Part2;
+
+impl Part2 {
+    fn solve_input(input: &str) -> Result<u64, Box<dyn std::error::Error>> {
+        let (_, mut disk) = Disk::parse(input).map_err(|e| e.to_owned())?;
+
+        disk.defragment_v2();
+
+        Ok(disk.checksum())
+    }
+}
+
+impl Puzzle for Part2 {
     fn solve(&self) -> Result<u64, Box<dyn std::error::Error>> {
         Self::solve_input(INPUT)
     }
@@ -138,5 +213,10 @@ mod tests {
     #[test]
     fn test_part1() {
         assert_eq!(Part1::solve_input(TEST_INPUT).unwrap(), 1928);
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(Part2::solve_input(TEST_INPUT).unwrap(), 2858);
     }
 }
