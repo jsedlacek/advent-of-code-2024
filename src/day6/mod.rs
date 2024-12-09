@@ -145,6 +145,8 @@ impl Game {
     }
 
     fn play(&mut self) -> Result<GameResult, Box<dyn std::error::Error>> {
+        self.visited_positions.insert(self.guard_pos);
+
         loop {
             match self.progress() {
                 ProgressResult::Continue => {}
@@ -153,7 +155,6 @@ impl Game {
             }
         }
 
-        self.visited_positions.insert(self.guard_pos);
         Ok(GameResult::Done(self.visited_positions.len() as u64))
     }
 }
