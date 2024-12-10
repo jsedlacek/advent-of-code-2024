@@ -19,7 +19,7 @@ impl Part1 {
                 let trails = find_trails(&map, point);
                 let targets = trails
                     .iter()
-                    .map(|trail| trail.iter().last().unwrap())
+                    .map(|trail| trail.back().unwrap())
                     .collect::<HashSet<_>>();
                 targets.len() as u64
             })
@@ -77,9 +77,7 @@ fn find_trailheads(map: &HashMap<Point, u64>) -> Vec<Point> {
 fn find_trails(map: &HashMap<Point, u64>, point: Point) -> Vec<VecDeque<Point>> {
     let mut trails = Vec::new();
 
-    let height = map.get(&point);
-
-    if let Some(&height) = height {
+    if let Some(&height) = map.get(&point) {
         if height == 9 {
             return vec![VecDeque::from([point])];
         }
