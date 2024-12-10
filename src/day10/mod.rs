@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, VecDeque};
 
 use crate::{
     util::{Direction, Point},
@@ -19,7 +19,7 @@ impl Part1 {
                 let trails = find_trails(&map, point);
                 let targets = trails
                     .iter()
-                    .map(|trail| trail.last().unwrap())
+                    .map(|trail| trail.iter().last().unwrap())
                     .collect::<HashSet<_>>();
                 targets.len() as u64
             })
@@ -74,14 +74,14 @@ fn find_trailheads(map: &HashMap<Point, u64>) -> Vec<Point> {
         .collect::<Vec<_>>()
 }
 
-fn find_trails(map: &HashMap<Point, u64>, point: Point) -> Vec<Vec<Point>> {
+fn find_trails(map: &HashMap<Point, u64>, point: Point) -> Vec<VecDeque<Point>> {
     let mut trails = Vec::new();
 
     let height = map.get(&point);
 
     if let Some(&height) = height {
         if height == 9 {
-            return vec![vec![point]];
+            return vec![VecDeque::from([point])];
         }
 
         for dir in Direction::all() {
@@ -90,7 +90,7 @@ fn find_trails(map: &HashMap<Point, u64>, point: Point) -> Vec<Vec<Point>> {
             if next_height == Some(&(height + 1)) {
                 let next_trails = find_trails(map, next_point);
                 for mut trail in next_trails {
-                    trail.insert(0, point);
+                    trail.push_front(point);
                     trails.push(trail);
                 }
             }
