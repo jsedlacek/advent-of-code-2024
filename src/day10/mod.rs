@@ -79,17 +79,17 @@ fn find_trails(map: &HashMap<Point, u64>, point: Point) -> Vec<VecDeque<Point>> 
 
     if let Some(&height) = map.get(&point) {
         if height == 9 {
-            return vec![VecDeque::from([point])];
-        }
-
-        for dir in Direction::all() {
-            let next_point = point + dir;
-            let next_height = map.get(&next_point);
-            if next_height == Some(&(height + 1)) {
-                let next_trails = find_trails(map, next_point);
-                for mut trail in next_trails {
-                    trail.push_front(point);
-                    trails.push(trail);
+            trails.push(VecDeque::from([point]));
+        } else {
+            for dir in Direction::all() {
+                let next_point = point + dir;
+                let next_height = map.get(&next_point);
+                if next_height == Some(&(height + 1)) {
+                    let next_trails = find_trails(map, next_point);
+                    for mut trail in next_trails {
+                        trail.push_front(point);
+                        trails.push(trail);
+                    }
                 }
             }
         }
