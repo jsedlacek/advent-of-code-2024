@@ -10,10 +10,10 @@ const INPUT: &str = include_str!("input.txt");
 pub struct Part1;
 
 impl Part1 {
-    pub fn solve_input(input: &str) -> u64 {
-        let map = parse_input(input);
+    pub fn solve_input(input: &str) -> Result<u64, Box<dyn std::error::Error>> {
+        let map = parse_input(input)?;
 
-        find_trailheads(&map)
+        Ok(find_trailheads(&map)
             .iter()
             .map(|&point| {
                 let trails = find_trails(&map, point);
@@ -23,48 +23,50 @@ impl Part1 {
                     .collect::<HashSet<_>>();
                 targets.len() as u64
             })
-            .sum()
+            .sum())
     }
 }
 
 impl Puzzle for Part1 {
     fn solve(&self) -> Result<u64, Box<dyn std::error::Error>> {
-        Ok(Self::solve_input(INPUT))
+        Self::solve_input(INPUT)
     }
 }
 
 pub struct Part2;
 
 impl Part2 {
-    pub fn solve_input(input: &str) -> u64 {
-        let map = parse_input(input);
+    pub fn solve_input(input: &str) -> Result<u64, Box<dyn std::error::Error>> {
+        let map = parse_input(input)?;
 
-        find_trailheads(&map)
+        Ok(find_trailheads(&map)
             .iter()
             .map(|&point| {
                 let trails = find_trails(&map, point);
                 trails.len() as u64
             })
-            .sum()
+            .sum())
     }
 }
 
 impl Puzzle for Part2 {
     fn solve(&self) -> Result<u64, Box<dyn std::error::Error>> {
-        Ok(Self::solve_input(INPUT))
+        Self::solve_input(INPUT)
     }
 }
 
-fn parse_input(input: &str) -> HashMap<Point, u64> {
-    input
+fn parse_input(input: &str) -> Result<HashMap<Point, u64>, Box<dyn std::error::Error>> {
+    Ok(input
         .lines()
         .enumerate()
         .flat_map(|(y, line)| {
-            line.chars()
-                .enumerate()
-                .map(move |(x, c)| (Point(y as i64, x as i64), c.to_digit(10).unwrap() as u64))
+            line.chars().enumerate().map(move |(x, c)| {
+                c.to_digit(10)
+                    .ok_or_else(|| format!("Invalid digit: {}", c))
+                    .map(|height| (Point(y as i64, x as i64), height as u64))
+            })
         })
-        .collect()
+        .collect::<Result<_, _>>()?)
 }
 
 fn find_trailheads(map: &HashMap<Point, u64>) -> Vec<Point> {
@@ -106,7 +108,7 @@ mod tests {
 
     #[test]
     fn test_parse_input() {
-        let map = parse_input(TEST_INPUT);
+        let map = parse_input(TEST_INPUT).unwrap();
         assert_eq!(map.len(), 64);
         assert_eq!(map.get(&Point(0, 0)), Some(&8));
         assert_eq!(map.get(&Point(7, 7)), Some(&2));
@@ -114,11 +116,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(Part1::solve_input(TEST_INPUT), 36);
+        assert_eq!(Part1::solve_input(TEST_INPUT).unwrap(), 36);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(Part2::solve_input(TEST_INPUT), 81);
+        assert_eq!(Part2::solve_input(TEST_INPUT).unwrap(), 81);
     }
 }
