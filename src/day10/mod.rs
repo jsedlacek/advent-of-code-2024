@@ -15,8 +15,8 @@ impl Part1 {
 
         find_trailheads(&map)
             .iter()
-            .map(|point| {
-                let trails = find_trails(&map, *point);
+            .map(|&point| {
+                let trails = find_trails(&map, point);
                 let targets = trails
                     .iter()
                     .map(|trail| trail.last().unwrap())
@@ -41,8 +41,8 @@ impl Part2 {
 
         find_trailheads(&map)
             .iter()
-            .map(|point| {
-                let trails = find_trails(&map, *point);
+            .map(|&point| {
+                let trails = find_trails(&map, point);
                 trails.len() as u64
             })
             .sum()
@@ -79,8 +79,8 @@ fn find_trails(map: &HashMap<Point, u64>, point: Point) -> Vec<Vec<Point>> {
 
     let height = map.get(&point);
 
-    if let Some(height) = height {
-        if *height == 9 {
+    if let Some(&height) = height {
+        if height == 9 {
             return vec![vec![point]];
         }
 
