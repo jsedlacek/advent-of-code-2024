@@ -13,46 +13,17 @@ impl Part1 {
     pub fn solve_input(input: &str) -> u64 {
         let map = parse_input(input);
 
-        let trailheads = map
-            .iter()
-            .filter(|&(_, &height)| height == 0)
-            .map(|(&point, _)| point)
-            .collect::<Vec<_>>();
-
-        trailheads
+        find_trailheads(&map)
             .iter()
             .map(|point| {
-                let mut targets = HashSet::new();
-                Self::find_trails(&map, *point, &[], &mut targets);
+                let trails = find_trails(&map, *point);
+                let targets = trails
+                    .iter()
+                    .map(|trail| trail.last().unwrap())
+                    .collect::<HashSet<_>>();
                 targets.len() as u64
             })
             .sum()
-    }
-
-    fn find_trails(
-        map: &HashMap<Point, u64>,
-        point: Point,
-        trail: &[Point],
-        targets: &mut HashSet<Point>,
-    ) {
-        let mut trail = trail.to_vec();
-        trail.push(point);
-
-        let height = map.get(&point);
-
-        if let Some(height) = height {
-            if *height == 9 {
-                targets.insert(point);
-            }
-
-            for dir in Direction::all() {
-                let next_point = point + dir;
-                let next_height = map.get(&next_point);
-                if next_height == Some(&(height + 1)) {
-                    Self::find_trails(map, next_point, &trail, targets);
-                }
-            }
-        }
     }
 }
 
@@ -68,38 +39,13 @@ impl Part2 {
     pub fn solve_input(input: &str) -> u64 {
         let map = parse_input(input);
 
-        let trailheads = map
+        find_trailheads(&map)
             .iter()
-            .filter(|&(_, &height)| height == 0)
-            .map(|(&point, _)| point)
-            .collect::<Vec<_>>();
-
-        trailheads
-            .iter()
-            .map(|point| Self::find_trails(&map, *point))
+            .map(|point| {
+                let trails = find_trails(&map, *point);
+                trails.len() as u64
+            })
             .sum()
-    }
-
-    fn find_trails(map: &HashMap<Point, u64>, point: Point) -> u64 {
-        let height = map.get(&point);
-
-        let mut count = 0;
-
-        if let Some(height) = height {
-            if *height == 9 {
-                return 1;
-            }
-
-            for dir in Direction::all() {
-                let next_point = point + dir;
-                let next_height = map.get(&next_point);
-                if next_height == Some(&(height + 1)) {
-                    count += Self::find_trails(map, next_point);
-                }
-            }
-        }
-
-        count
     }
 }
 
@@ -119,6 +65,39 @@ fn parse_input(input: &str) -> HashMap<Point, u64> {
                 .map(move |(x, c)| (Point(y as i64, x as i64), c.to_digit(10).unwrap() as u64))
         })
         .collect()
+}
+
+fn find_trailheads(map: &HashMap<Point, u64>) -> Vec<Point> {
+    map.iter()
+        .filter(|&(_, &height)| height == 0)
+        .map(|(&point, _)| point)
+        .collect::<Vec<_>>()
+}
+
+fn find_trails(map: &HashMap<Point, u64>, point: Point) -> Vec<Vec<Point>> {
+    let mut trails = Vec::new();
+
+    let height = map.get(&point);
+
+    if let Some(height) = height {
+        if *height == 9 {
+            return vec![vec![point]];
+        }
+
+        for dir in Direction::all() {
+            let next_point = point + dir;
+            let next_height = map.get(&next_point);
+            if next_height == Some(&(height + 1)) {
+                let next_trails = find_trails(map, next_point);
+                for mut trail in next_trails {
+                    trail.insert(0, point);
+                    trails.push(trail);
+                }
+            }
+        }
+    }
+
+    trails
 }
 
 #[cfg(test)]
