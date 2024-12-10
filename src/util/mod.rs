@@ -63,4 +63,13 @@ impl Direction {
             Direction::Right => Direction::Down,
         }
     }
+
+    pub(crate) fn all() -> [Self; 4] {
+        [
+            Direction::Up,
+            Direction::Down,
+            Direction::Left,
+            Direction::Right,
+        ]
+    }
 }
