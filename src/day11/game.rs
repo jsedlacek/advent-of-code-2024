@@ -73,14 +73,9 @@ mod tests {
     }
 
     #[test]
-    fn test_part1() {
+    fn test_play() {
         let mut game = Game::new();
         assert_eq!(game.play(&[125, 17], 25), 55312);
-    }
-
-    #[test]
-    fn test_part2() {
-        let mut game = Game::new();
-        assert_eq!(game.play(&[1], 75), 34840149002654);
+        assert_eq!(game.play(&[125, 17], 75), 65601038650482);
     }
 }

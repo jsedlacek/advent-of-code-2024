@@ -41,3 +41,18 @@ impl Puzzle for Part2 {
         Self::solve_input(INPUT)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_part1() {
+        assert_eq!(Part1::solve_input("125 17").unwrap(), 55312);
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(Part2::solve_input("1").unwrap(), 34840149002654);
+    }
+}
