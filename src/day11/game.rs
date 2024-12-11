@@ -11,7 +11,7 @@ impl Game {
         }
     }
 
-    pub fn play(&mut self, numbers: Vec<u64>, rounds: u64) -> u64 {
+    pub fn play(&mut self, numbers: &[u64], rounds: u64) -> u64 {
         numbers.iter().map(|&n| self.stone_count(n, rounds)).sum()
     }
 
@@ -71,12 +71,12 @@ mod tests {
     #[test]
     fn test_part1() {
         let mut game = Game::new();
-        assert_eq!(game.play(vec![125, 17], 25), 55312);
+        assert_eq!(game.play(&[125, 17], 25), 55312);
     }
 
     #[test]
     fn test_part2() {
         let mut game = Game::new();
-        assert_eq!(game.play(vec![1], 75), 34840149002654);
+        assert_eq!(game.play(&[1], 75), 34840149002654);
     }
 }
