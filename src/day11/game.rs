@@ -21,6 +21,7 @@ impl Game {
         }
 
         let key = (number, rounds);
+
         if let Some(&res) = self.stone_count_cache.get(&key) {
             return res;
         }
