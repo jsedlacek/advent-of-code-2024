@@ -15,7 +15,7 @@ impl Part1 {
         let (_, numbers) = parse_input(input).map_err(|e| e.to_owned())?;
 
         let mut game = Game::new();
-        Ok(game.play(&numbers, 25))
+        game.play(&numbers, 25)
     }
 }
 
@@ -32,7 +32,7 @@ impl Part2 {
         let (_, numbers) = parse_input(input).map_err(|e| e.to_owned())?;
 
         let mut game = Game::new();
-        Ok(game.play(&numbers, 75))
+        game.play(&numbers, 75)
     }
 }
 
