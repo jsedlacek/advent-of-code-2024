@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::error::Error;
 
 pub struct Game {
     cache: HashMap<(u64, u64), u64>,
@@ -11,15 +12,11 @@ impl Game {
         }
     }
 
-    pub fn play(
-        &mut self,
-        numbers: &[u64],
-        rounds: u64,
-    ) -> Result<u64, Box<dyn std::error::Error>> {
+    pub fn play(&mut self, numbers: &[u64], rounds: u64) -> Result<u64, Box<dyn Error>> {
         numbers.iter().map(|&n| self.stone_count(n, rounds)).sum()
     }
 
-    fn stone_count(&mut self, number: u64, rounds: u64) -> Result<u64, Box<dyn std::error::Error>> {
+    fn stone_count(&mut self, number: u64, rounds: u64) -> Result<u64, Box<dyn Error>> {
         if rounds == 0 {
             return Ok(1);
         }
@@ -40,17 +37,18 @@ impl Game {
         Ok(res)
     }
 
-    fn transform_stone(number: u64) -> Result<Vec<u64>, Box<dyn std::error::Error>> {
-        let number_str = number.to_string();
+    fn transform_stone(number: u64) -> Result<Vec<u64>, Box<dyn Error>> {
+        if number == 0 {
+            return Ok(vec![1]);
+        }
 
-        Ok(if number == 0 {
-            vec![1]
-        } else if number_str.len() % 2 == 0 {
+        let number_str = number.to_string();
+        if number_str.len() % 2 == 0 {
             let (first, second) = number_str.split_at(number_str.len() / 2);
-            vec![first.parse()?, second.parse()?]
+            Ok(vec![first.parse()?, second.parse()?])
         } else {
-            vec![number * 2024]
-        })
+            Ok(vec![number.saturating_mul(2024)])
+        }
     }
 }
 
