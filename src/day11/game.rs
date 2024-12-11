@@ -58,6 +58,13 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_transform_stone() {
+        assert_eq!(Game::transform_stone(0), vec![1]);
+        assert_eq!(Game::transform_stone(1), vec![2024]);
+        assert_eq!(Game::transform_stone(2024), vec![20, 24]);
+    }
+
+    #[test]
     fn test_stone_count() {
         let mut game = Game::new();
         assert_eq!(game.stone_count(0, 1), 1);
