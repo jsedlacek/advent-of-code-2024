@@ -37,7 +37,7 @@ impl Disk {
     }
 
     pub fn defragment_v2(&mut self) {
-        let mut files: Vec<_> = self.find_files().into_iter().collect();
+        let mut files = Vec::from_iter(self.find_files());
         files.sort_unstable_by_key(|&(id, _)| id);
         files.reverse();
 
