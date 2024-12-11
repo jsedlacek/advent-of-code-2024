@@ -100,7 +100,7 @@ fn parse_input(input: &str) -> IResult<&str, Vec<Instruction>> {
         map(parse_mul, Instruction::Mul),
         map(tag("do()"), |_| Instruction::Do),
         map(tag("don't()"), |_| Instruction::Dont),
-        map(take(1u64), |_| Instruction::Void),
+        map(take(1usize), |_| Instruction::Void),
     )))(input)
 }
 
