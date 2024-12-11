@@ -17,7 +17,7 @@ impl Part1 {
         let (_, numbers) = parse_input(input).map_err(|e| e.to_owned())?;
 
         let mut game = Game::new();
-        game.play(&numbers, 25)
+        game.evolve_stones(&numbers, 25)
     }
 }
 
@@ -34,7 +34,7 @@ impl Part2 {
         let (_, numbers) = parse_input(input).map_err(|e| e.to_owned())?;
 
         let mut game = Game::new();
-        game.play(&numbers, 75)
+        game.evolve_stones(&numbers, 75)
     }
 }
 
