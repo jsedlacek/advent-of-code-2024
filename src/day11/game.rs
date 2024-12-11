@@ -56,7 +56,7 @@ impl Stone {
             return Ok(vec![Stone(1)]);
         }
 
-        let stone_str = self.0.to_string();
+        let stone_str = self.to_string();
 
         if stone_str.len() % 2 == 0 {
             let (first, second) = stone_str.split_at(stone_str.len() / 2);
@@ -64,6 +64,12 @@ impl Stone {
         } else {
             Ok(vec![Stone(self.0.checked_mul(2024).ok_or("Overflow")?)])
         }
+    }
+}
+
+impl ToString for Stone {
+    fn to_string(&self) -> String {
+        self.0.to_string()
     }
 }
 
