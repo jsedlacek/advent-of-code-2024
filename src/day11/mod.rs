@@ -14,10 +14,10 @@ pub struct Part1;
 
 impl Part1 {
     fn solve_input(input: &str) -> Result<u64, Box<dyn error::Error>> {
-        let (_, numbers) = parse_input(input).map_err(|e| e.to_owned())?;
+        let (_, stones) = parse_input(input).map_err(|e| e.to_owned())?;
 
         let mut game = Game::new();
-        game.evolve_stones(&numbers, 25)
+        game.evolve_stones(&stones, 25)
     }
 }
 
@@ -31,10 +31,10 @@ pub struct Part2;
 
 impl Part2 {
     fn solve_input(input: &str) -> Result<u64, Box<dyn error::Error>> {
-        let (_, numbers) = parse_input(input).map_err(|e| e.to_owned())?;
+        let (_, stones) = parse_input(input).map_err(|e| e.to_owned())?;
 
         let mut game = Game::new();
-        game.evolve_stones(&numbers, 75)
+        game.evolve_stones(&stones, 75)
     }
 }
 

@@ -12,40 +12,48 @@ impl Game {
         }
     }
 
-    pub fn evolve_stones(&mut self, numbers: &[u64], rounds: u64) -> Result<u64, Box<dyn Error>> {
-        numbers.iter().map(|&n| self.evolve_stone(n, rounds)).sum()
+    pub fn evolve_stones(
+        &mut self,
+        stones: &[u64],
+        round_count: u64,
+    ) -> Result<u64, Box<dyn Error>> {
+        stones
+            .iter()
+            .map(|&stone| self.evolve_stone(stone, round_count))
+            .sum()
     }
 
-    fn evolve_stone(&mut self, number: u64, rounds: u64) -> Result<u64, Box<dyn Error>> {
-        if rounds == 0 {
+    fn evolve_stone(&mut self, stone: u64, round_count: u64) -> Result<u64, Box<dyn Error>> {
+        if round_count == 0 {
             return Ok(1);
         }
 
-        let key = (number, rounds);
+        let key = (stone, round_count);
 
         if let Some(&res) = self.cache.get(&key) {
             return Ok(res);
         }
 
-        let stones = Self::transform_stone(number)?;
-        let res = self.evolve_stones(&stones, rounds - 1)?;
+        let stones = Self::transform_stone(stone)?;
+        let res = self.evolve_stones(&stones, round_count - 1)?;
 
         self.cache.insert(key, res);
 
         Ok(res)
     }
 
-    fn transform_stone(number: u64) -> Result<Vec<u64>, Box<dyn Error>> {
-        if number == 0 {
+    fn transform_stone(stone: u64) -> Result<Vec<u64>, Box<dyn Error>> {
+        if stone == 0 {
             return Ok(vec![1]);
         }
 
-        let number_str = number.to_string();
-        if number_str.len() % 2 == 0 {
-            let (first, second) = number_str.split_at(number_str.len() / 2);
+        let stone_str = stone.to_string();
+
+        if stone_str.len() % 2 == 0 {
+            let (first, second) = stone_str.split_at(stone_str.len() / 2);
             Ok(vec![first.parse()?, second.parse()?])
         } else {
-            Ok(vec![number.checked_mul(2024).ok_or("Overflow")?])
+            Ok(vec![stone.checked_mul(2024).ok_or("Overflow")?])
         }
     }
 }
