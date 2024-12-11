@@ -27,7 +27,8 @@ impl Game {
             return Ok(res);
         }
 
-        let res = self.evolve_stones(&Self::transform_stone(number)?, rounds - 1)?;
+        let stones = Self::transform_stone(number)?;
+        let res = self.evolve_stones(&stones, rounds - 1)?;
 
         self.cache.insert(key, res);
 
