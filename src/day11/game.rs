@@ -20,7 +20,8 @@ impl Game {
             return 1;
         }
 
-        if let Some(&res) = self.stone_count_cache.get(&(number, rounds)) {
+        let key = (number, rounds);
+        if let Some(&res) = self.stone_count_cache.get(&key) {
             return res;
         }
 
@@ -29,30 +30,25 @@ impl Game {
             .map(|n| self.stone_count(n, rounds - 1))
             .sum();
 
-        self.stone_count_cache.insert((number, rounds), res);
+        self.stone_count_cache.insert(key, res);
 
         res
     }
 
     fn transform_stone(number: u64) -> Vec<u64> {
-        let mut result = Vec::new();
+        let number_str = number.to_string();
 
-        match number {
-            0 => {
-                result.push(1);
-            }
-            num if num.to_string().len() % 2 == 0 => {
-                let str = num.to_string();
-                let (first, second) = str.split_at(str.len() / 2);
-                result.push(first.parse::<u64>().unwrap());
-                result.push(second.parse::<u64>().unwrap());
-            }
-            num => {
-                result.push(num * 2024);
-            }
+        if number == 0 {
+            vec![1]
+        } else if number_str.len() % 2 == 0 {
+            let (first, second) = number_str.split_at(number_str.len() / 2);
+            vec![
+                first.parse::<u64>().unwrap(),
+                second.parse::<u64>().unwrap(),
+            ]
+        } else {
+            vec![number * 2024]
         }
-
-        result
     }
 }
 
