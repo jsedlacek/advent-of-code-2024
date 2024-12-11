@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
 pub struct Game {
-    stone_count_cache: HashMap<(u64, u64), u64>,
+    cache: HashMap<(u64, u64), u64>,
 }
 
 impl Game {
     pub fn new() -> Self {
         Self {
-            stone_count_cache: HashMap::new(),
+            cache: HashMap::new(),
         }
     }
 
@@ -22,7 +22,7 @@ impl Game {
 
         let key = (number, rounds);
 
-        if let Some(&res) = self.stone_count_cache.get(&key) {
+        if let Some(&res) = self.cache.get(&key) {
             return res;
         }
 
@@ -31,7 +31,7 @@ impl Game {
             .map(|n| self.stone_count(n, rounds - 1))
             .sum();
 
-        self.stone_count_cache.insert(key, res);
+        self.cache.insert(key, res);
 
         res
     }
