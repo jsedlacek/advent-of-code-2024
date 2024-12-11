@@ -2,6 +2,7 @@ mod util;
 
 mod day1;
 mod day10;
+mod day11;
 mod day2;
 mod day3;
 mod day4;
@@ -54,6 +55,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     days.insert((9, 2), Box::new(day9::Part2));
     days.insert((10, 1), Box::new(day10::Part1));
     days.insert((10, 2), Box::new(day10::Part2));
+    days.insert((11, 1), Box::new(day11::Part1));
+    days.insert((11, 2), Box::new(day11::Part2));
 
     let mut puzzles = days
         .iter()
