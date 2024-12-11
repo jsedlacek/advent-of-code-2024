@@ -5,7 +5,7 @@ use nom::{
     IResult,
 };
 
-use super::game::Stone;
+use super::stone::Stone;
 
 pub fn parse_input(input: &str) -> IResult<&str, Vec<Stone>> {
     separated_list1(space1, map(u64, Stone::new))(input)

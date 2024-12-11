@@ -1,5 +1,6 @@
 mod game;
 mod parse;
+mod stone;
 
 use std::error;
 
