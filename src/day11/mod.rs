@@ -63,7 +63,7 @@ impl Game {
         numbers
             .clone()
             .iter()
-            .map(|&n| self.stone_count_cached(n, rounds))
+            .map(|&n| self.stone_count(n, rounds))
             .sum()
     }
 
@@ -72,20 +72,14 @@ impl Game {
             return 1;
         }
 
-        let res = Self::transform_stone(number)
-            .into_iter()
-            .map(|n| self.stone_count_cached(n, rounds - 1))
-            .sum();
-
-        res
-    }
-
-    fn stone_count_cached(&mut self, number: u64, rounds: u64) -> u64 {
         if let Some(res) = self.stone_count_cache.get(&(number, rounds)) {
             return *res;
         }
 
-        let res = self.stone_count(number, rounds);
+        let res = Self::transform_stone(number)
+            .into_iter()
+            .map(|n| self.stone_count(n, rounds - 1))
+            .sum();
 
         self.stone_count_cache.insert((number, rounds), res);
 
