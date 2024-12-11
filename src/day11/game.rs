@@ -47,7 +47,7 @@ impl Game {
             let (first, second) = number_str.split_at(number_str.len() / 2);
             Ok(vec![first.parse()?, second.parse()?])
         } else {
-            Ok(vec![number.saturating_mul(2024)])
+            Ok(vec![number.checked_mul(2024).ok_or("Overflow")?])
         }
     }
 }
