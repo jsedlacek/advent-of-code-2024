@@ -62,8 +62,12 @@ impl Stone {
             let (first, second) = stone_str.split_at(stone_str.len() / 2);
             Ok(vec![Stone(first.parse()?), Stone(second.parse()?)])
         } else {
-            Ok(vec![Stone(self.0.checked_mul(2024).ok_or("Overflow")?)])
+            Ok(vec![self.checked_mul(2024).ok_or("Overflow")?])
         }
+    }
+
+    fn checked_mul(&self, rhs: u64) -> Option<Self> {
+        self.0.checked_mul(rhs).map(Stone)
     }
 }
 
