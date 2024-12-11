@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{error::Error, num::ParseIntError, str::FromStr};
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub struct Stone {
@@ -22,7 +22,7 @@ impl Stone {
 
             Ok([first, second]
                 .iter()
-                .map(|s| s.parse().map(Self::new))
+                .map(|s| s.parse())
                 .collect::<Result<_, _>>()?)
         } else {
             Ok(vec![self.checked_mul(2024).ok_or("Overflow")?])
@@ -37,6 +37,14 @@ impl Stone {
 impl ToString for Stone {
     fn to_string(&self) -> String {
         self.number.to_string()
+    }
+}
+
+impl FromStr for Stone {
+    type Err = ParseIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.parse().map(Self::new)
     }
 }
 
