@@ -20,8 +20,8 @@ impl Game {
             return 1;
         }
 
-        if let Some(res) = self.stone_count_cache.get(&(number, rounds)) {
-            return *res;
+        if let Some(&res) = self.stone_count_cache.get(&(number, rounds)) {
+            return res;
         }
 
         let res = Self::transform_stone(number)
