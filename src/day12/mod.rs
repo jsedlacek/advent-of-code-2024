@@ -13,45 +13,9 @@ impl Part1 {
     pub fn solve_input(input: &str) -> u64 {
         let map = parse_input(input);
 
-        let mut processed = HashSet::new();
-        let mut set_list = Vec::new();
+        let regions = find_regions(&map);
 
-        for (&pos, item) in map.iter() {
-            if processed.contains(&pos) {
-                continue;
-            }
-
-            let mut set = HashSet::new();
-            let mut queue = VecDeque::new();
-            queue.push_back(pos);
-
-            while let Some(queue_pos) = queue.pop_front() {
-                if processed.contains(&queue_pos) {
-                    continue;
-                }
-
-                set.insert(queue_pos);
-                processed.insert(queue_pos);
-
-                for dir in Direction::all() {
-                    let neighbot_pos = queue_pos + dir;
-
-                    if map.get(&neighbot_pos) != Some(item) {
-                        continue;
-                    }
-
-                    if processed.contains(&neighbot_pos) {
-                        continue;
-                    }
-
-                    queue.push_back(neighbot_pos);
-                }
-            }
-
-            set_list.push(set);
-        }
-
-        set_list.iter().map(Self::fence_price).sum()
+        regions.iter().map(Self::fence_price).sum()
     }
 
     fn fence_price(fence: &HashSet<Point>) -> u64 {
@@ -83,45 +47,9 @@ impl Part2 {
     pub fn solve_input(input: &str) -> u64 {
         let map = parse_input(input);
 
-        let mut processed = HashSet::new();
-        let mut set_list = Vec::new();
+        let regions = find_regions(&map);
 
-        for (&pos, item) in map.iter() {
-            if processed.contains(&pos) {
-                continue;
-            }
-
-            let mut set = HashSet::new();
-            let mut queue = VecDeque::new();
-            queue.push_back(pos);
-
-            while let Some(queue_pos) = queue.pop_front() {
-                if processed.contains(&queue_pos) {
-                    continue;
-                }
-
-                set.insert(queue_pos);
-                processed.insert(queue_pos);
-
-                for dir in Direction::all() {
-                    let neighbot_pos = queue_pos + dir;
-
-                    if map.get(&neighbot_pos) != Some(item) {
-                        continue;
-                    }
-
-                    if processed.contains(&neighbot_pos) {
-                        continue;
-                    }
-
-                    queue.push_back(neighbot_pos);
-                }
-            }
-
-            set_list.push(set);
-        }
-
-        set_list.iter().map(Self::fence_price).sum()
+        regions.iter().map(Self::fence_price).sum()
     }
 
     fn fence_price(fence: &HashSet<Point>) -> u64 {
@@ -179,6 +107,48 @@ fn parse_input(input: &str) -> HashMap<Point, Tile> {
                 .map(move |(x, c)| (Point(x as i64, y as i64), Tile::new(c)))
         })
         .collect()
+}
+
+fn find_regions(map: &HashMap<Point, Tile>) -> Vec<HashSet<Point>> {
+    let mut processed = HashSet::new();
+    let mut regions = Vec::new();
+
+    for (&pos, item) in map.iter() {
+        if processed.contains(&pos) {
+            continue;
+        }
+
+        let mut set = HashSet::new();
+        let mut queue = VecDeque::new();
+        queue.push_back(pos);
+
+        while let Some(queue_pos) = queue.pop_front() {
+            if processed.contains(&queue_pos) {
+                continue;
+            }
+
+            set.insert(queue_pos);
+            processed.insert(queue_pos);
+
+            for dir in Direction::all() {
+                let neighbot_pos = queue_pos + dir;
+
+                if map.get(&neighbot_pos) != Some(item) {
+                    continue;
+                }
+
+                if processed.contains(&neighbot_pos) {
+                    continue;
+                }
+
+                queue.push_back(neighbot_pos);
+            }
+        }
+
+        regions.push(set);
+    }
+
+    regions
 }
 
 #[cfg(test)]
