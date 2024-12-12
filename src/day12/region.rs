@@ -17,35 +17,31 @@ impl Region {
         let mut processed = HashSet::new();
         let mut regions = Vec::new();
 
-        for (&pos, &tile) in map.iter() {
-            if processed.contains(&pos) {
+        for (&point, &tile) in map.iter() {
+            if processed.contains(&point) {
                 continue;
             }
 
             let mut points = HashSet::new();
             let mut queue = VecDeque::new();
-            queue.push_back(pos);
+            queue.push_back(point);
 
-            while let Some(queue_pos) = queue.pop_front() {
-                if processed.contains(&queue_pos) {
+            while let Some(current_point) = queue.pop_front() {
+                if processed.contains(&current_point) {
                     continue;
                 }
 
-                points.insert(queue_pos);
-                processed.insert(queue_pos);
+                points.insert(current_point);
+                processed.insert(current_point);
 
                 for dir in Direction::all() {
-                    let neighbot_pos = queue_pos + dir;
+                    let neighbour_point = current_point + dir;
 
-                    if map.get(&neighbot_pos) != Some(&tile) {
+                    if map.get(&neighbour_point) != Some(&tile) {
                         continue;
                     }
 
-                    if processed.contains(&neighbot_pos) {
-                        continue;
-                    }
-
-                    queue.push_back(neighbot_pos);
+                    queue.push_back(neighbour_point);
                 }
             }
 
