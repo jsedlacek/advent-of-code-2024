@@ -3,9 +3,8 @@ use std::{
     fmt::Display,
 };
 
-use crate::util::{Direction, Point};
-
 use super::tile::Tile;
+use crate::util::{Direction, Point};
 
 pub struct Region {
     points: HashSet<Point>,
@@ -14,38 +13,41 @@ pub struct Region {
 
 impl Region {
     pub fn find_regions(map: &HashMap<Point, Tile>) -> Vec<Region> {
-        let mut processed = HashSet::new();
+        let mut processed_points = HashSet::new();
         let mut regions = Vec::new();
 
         for (&point, &tile) in map.iter() {
-            if processed.contains(&point) {
+            if processed_points.contains(&point) {
                 continue;
             }
 
-            let mut points = HashSet::new();
+            let mut region_points = HashSet::new();
             let mut queue = VecDeque::new();
             queue.push_back(point);
 
             while let Some(current_point) = queue.pop_front() {
-                if processed.contains(&current_point) {
+                if processed_points.contains(&current_point) {
                     continue;
                 }
 
-                points.insert(current_point);
-                processed.insert(current_point);
+                region_points.insert(current_point);
+                processed_points.insert(current_point);
 
-                for dir in Direction::all() {
-                    let neighbour_point = current_point + dir;
+                for direction in Direction::all() {
+                    let neighbor_point = current_point + direction;
 
-                    if map.get(&neighbour_point) != Some(&tile) {
-                        continue;
+                    if map.get(&neighbor_point) == Some(&tile)
+                        && !processed_points.contains(&neighbor_point)
+                    {
+                        queue.push_back(neighbor_point);
                     }
-
-                    queue.push_back(neighbour_point);
                 }
             }
 
-            regions.push(Self { tile, points });
+            regions.push(Self {
+                tile,
+                points: region_points,
+            });
         }
 
         regions
@@ -58,36 +60,38 @@ impl Region {
     fn perimeter(&self) -> u64 {
         self.points
             .iter()
-            .map(|&pos| {
+            .map(|&point| {
                 Direction::all()
                     .into_iter()
-                    .filter(|&dir| !self.points.contains(&(pos + dir)))
+                    .filter(|&direction| !self.points.contains(&(point + direction)))
                     .count() as u64
             })
-            .sum::<u64>()
+            .sum()
     }
 
     fn sides(&self) -> u64 {
         let mut points_vec = self.points.iter().cloned().collect::<Vec<_>>();
         points_vec.sort();
 
-        let mut processed = HashSet::new();
         let mut sides = 0;
+        let mut processed_edges = HashSet::new();
 
-        for pos in points_vec {
-            for dir in Direction::all() {
-                if self.points.contains(&(pos + dir)) {
+        for &point in &points_vec {
+            for direction in Direction::all() {
+                if self.points.contains(&(point + direction)) {
                     continue;
                 }
 
-                if [pos + dir.rotate_left(), pos + dir.rotate_right()]
-                    .iter()
-                    .all(|&p| !processed.contains(&(p, dir)))
+                let left_neighbor = point + direction.rotate_left();
+                let right_neighbor = point + direction.rotate_right();
+
+                if !processed_edges.contains(&(left_neighbor, direction))
+                    && !processed_edges.contains(&(right_neighbor, direction))
                 {
                     sides += 1;
                 }
 
-                processed.insert((pos, dir));
+                processed_edges.insert((point, direction));
             }
         }
 
@@ -118,7 +122,7 @@ mod tests {
         assert_eq!(
             Region {
                 tile: Tile::new('A'),
-                points: HashSet::from_iter([Point(0, 0)])
+                points: HashSet::from([Point(0, 0)])
             }
             .area(),
             1
@@ -127,7 +131,7 @@ mod tests {
         assert_eq!(
             Region {
                 tile: Tile::new('A'),
-                points: HashSet::from_iter([Point(0, 0), Point(0, 1)])
+                points: HashSet::from([Point(0, 0), Point(0, 1)])
             }
             .area(),
             2
@@ -136,7 +140,7 @@ mod tests {
         assert_eq!(
             Region {
                 tile: Tile::new('A'),
-                points: HashSet::from_iter([Point(0, 0), Point(0, 1), Point(1, 1)])
+                points: HashSet::from([Point(0, 0), Point(0, 1), Point(1, 1)])
             }
             .area(),
             3
@@ -148,7 +152,7 @@ mod tests {
         assert_eq!(
             Region {
                 tile: Tile::new('A'),
-                points: HashSet::from_iter([Point(0, 0)])
+                points: HashSet::from([Point(0, 0)])
             }
             .perimeter(),
             4
@@ -157,7 +161,7 @@ mod tests {
         assert_eq!(
             Region {
                 tile: Tile::new('A'),
-                points: HashSet::from_iter([Point(0, 0), Point(0, 1)])
+                points: HashSet::from([Point(0, 0), Point(0, 1)])
             }
             .perimeter(),
             6
@@ -166,7 +170,7 @@ mod tests {
         assert_eq!(
             Region {
                 tile: Tile::new('A'),
-                points: HashSet::from_iter([Point(0, 0), Point(0, 1), Point(1, 1)])
+                points: HashSet::from([Point(0, 0), Point(0, 1), Point(1, 1)])
             }
             .perimeter(),
             8
@@ -178,7 +182,7 @@ mod tests {
         assert_eq!(
             Region {
                 tile: Tile::new('A'),
-                points: HashSet::from_iter([Point(0, 0)])
+                points: HashSet::from([Point(0, 0)])
             }
             .sides(),
             4
@@ -187,7 +191,7 @@ mod tests {
         assert_eq!(
             Region {
                 tile: Tile::new('A'),
-                points: HashSet::from_iter([Point(0, 0), Point(0, 1)])
+                points: HashSet::from([Point(0, 0), Point(0, 1)])
             }
             .sides(),
             4
@@ -196,7 +200,7 @@ mod tests {
         assert_eq!(
             Region {
                 tile: Tile::new('A'),
-                points: HashSet::from_iter([Point(0, 0), Point(0, 1), Point(1, 1)])
+                points: HashSet::from([Point(0, 0), Point(0, 1), Point(1, 1)])
             }
             .sides(),
             6
@@ -208,28 +212,28 @@ mod tests {
         assert_eq!(
             Region {
                 tile: Tile::new('A'),
-                points: HashSet::from_iter([Point(0, 0)])
+                points: HashSet::from([Point(0, 0)])
             }
             .price_v1(),
-            (1 * 4)
+            1 * 4
         );
 
         assert_eq!(
             Region {
                 tile: Tile::new('A'),
-                points: HashSet::from_iter([Point(0, 0), Point(0, 1)])
+                points: HashSet::from([Point(0, 0), Point(0, 1)])
             }
             .price_v1(),
-            (2 * 6)
+            2 * 6
         );
 
         assert_eq!(
             Region {
                 tile: Tile::new('A'),
-                points: HashSet::from_iter([Point(0, 0), Point(0, 1), Point(1, 1)])
+                points: HashSet::from([Point(0, 0), Point(0, 1), Point(1, 1)])
             }
             .price_v1(),
-            (3 * 8)
+            3 * 8
         );
     }
 
@@ -238,28 +242,28 @@ mod tests {
         assert_eq!(
             Region {
                 tile: Tile::new('A'),
-                points: HashSet::from_iter([Point(0, 0)])
+                points: HashSet::from([Point(0, 0)])
             }
             .price_v2(),
-            (1 * 4)
+            1 * 4
         );
 
         assert_eq!(
             Region {
                 tile: Tile::new('A'),
-                points: HashSet::from_iter([Point(0, 0), Point(0, 1)])
+                points: HashSet::from([Point(0, 0), Point(0, 1)])
             }
             .price_v2(),
-            (2 * 4)
+            2 * 4
         );
 
         assert_eq!(
             Region {
                 tile: Tile::new('A'),
-                points: HashSet::from_iter([Point(0, 0), Point(0, 1), Point(1, 1)])
+                points: HashSet::from([Point(0, 0), Point(0, 1), Point(1, 1)])
             }
             .price_v2(),
-            (3 * 6)
+            3 * 6
         );
     }
 }
