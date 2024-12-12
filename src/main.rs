@@ -39,26 +39,37 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     days.insert((1, 1), Box::new(day1::Part1));
     days.insert((1, 2), Box::new(day1::Part2));
+
     days.insert((2, 1), Box::new(day2::Part1));
     days.insert((2, 2), Box::new(day2::Part2));
+
     days.insert((3, 1), Box::new(day3::Part1));
     days.insert((3, 2), Box::new(day3::Part2));
+
     days.insert((4, 1), Box::new(day4::Part1));
     days.insert((4, 2), Box::new(day4::Part2));
+
     days.insert((5, 1), Box::new(day5::Part1));
     days.insert((5, 2), Box::new(day5::Part2));
+
     days.insert((6, 1), Box::new(day6::Part1));
     days.insert((6, 2), Box::new(day6::Part2));
+
     days.insert((7, 1), Box::new(day7::Part1));
     days.insert((7, 2), Box::new(day7::Part2));
+
     days.insert((8, 1), Box::new(day8::Part1));
     days.insert((8, 2), Box::new(day8::Part2));
+
     days.insert((9, 1), Box::new(day9::Part1));
     days.insert((9, 2), Box::new(day9::Part2));
+
     days.insert((10, 1), Box::new(day10::Part1));
     days.insert((10, 2), Box::new(day10::Part2));
+
     days.insert((11, 1), Box::new(day11::Part1));
     days.insert((11, 2), Box::new(day11::Part2));
+
     days.insert((12, 1), Box::new(day12::Part1));
     days.insert((12, 2), Box::new(day12::Part2));
 
