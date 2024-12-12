@@ -60,6 +60,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     days.insert((11, 1), Box::new(day11::Part1));
     days.insert((11, 2), Box::new(day11::Part2));
     days.insert((12, 1), Box::new(day12::Part1));
+    days.insert((12, 2), Box::new(day12::Part2));
 
     let mut puzzles = days
         .iter()

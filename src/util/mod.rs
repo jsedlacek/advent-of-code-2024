@@ -1,6 +1,6 @@
 use std::ops::{Add, AddAssign, Sub, SubAssign};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub struct Point(pub i64, pub i64);
 
 impl Add for Point {
@@ -55,12 +55,32 @@ pub enum Direction {
 }
 
 impl Direction {
-    pub fn rotate(&self) -> Direction {
+    pub fn rotate_right(&self) -> Direction {
         match self {
             Direction::Up => Direction::Right,
             Direction::Down => Direction::Left,
             Direction::Left => Direction::Up,
             Direction::Right => Direction::Down,
+        }
+    }
+
+    pub fn rotate_left(&self) -> Direction {
+        match self {
+            Direction::Up => Direction::Left,
+            Direction::Down => Direction::Right,
+            Direction::Left => Direction::Down,
+            Direction::Right => Direction::Up,
+        }
+    }
+
+    #[allow(dead_code)]
+
+    pub fn opposite(&self) -> Direction {
+        match self {
+            Direction::Up => Direction::Down,
+            Direction::Down => Direction::Up,
+            Direction::Left => Direction::Right,
+            Direction::Right => Direction::Left,
         }
     }
 
