@@ -63,7 +63,7 @@ fn parse_input(input: &str) -> Result<HashMap<Point, u64>, Box<dyn std::error::E
             line.chars().enumerate().map(move |(x, c)| {
                 c.to_digit(10)
                     .ok_or_else(|| format!("Invalid digit: {}", c))
-                    .map(|height| (Point(y as i64, x as i64), height as u64))
+                    .map(|height| (Point(x as i64, y as i64), height as u64))
             })
         })
         .collect::<Result<_, _>>()?)
