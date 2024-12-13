@@ -1,7 +1,7 @@
 use nom::{
     bytes::complete::tag,
     character::complete::{alpha1, i64, newline, space0},
-    combinator::map,
+    combinator::{map, map_res},
     multi::{many1, separated_list0},
     sequence::tuple,
     IResult,
@@ -16,13 +16,19 @@ pub fn parse_input(input: &str) -> IResult<&str, Vec<Machine>> {
 }
 
 fn parse_machine(input: &str) -> IResult<&str, Machine> {
-    map(
+    map_res(
         tuple((separated_list0(newline, parse_button), newline, parse_price)),
-        |(buttons, _, price)| {
-            let (_, button_a) = buttons.iter().find(|(name, _)| *name == "A").unwrap();
-            let (_, button_b) = buttons.iter().find(|(name, _)| *name == "B").unwrap();
+        |(buttons, _, price)| -> Result<_, String> {
+            let (_, button_a) = buttons
+                .iter()
+                .find(|(name, _)| *name == "A")
+                .ok_or("Button A not found")?;
+            let (_, button_b) = buttons
+                .iter()
+                .find(|(name, _)| *name == "B")
+                .ok_or("Button B not found")?;
 
-            Machine::new(*button_a, *button_b, price)
+            Ok(Machine::new(*button_a, *button_b, price))
         },
     )(input)
 }

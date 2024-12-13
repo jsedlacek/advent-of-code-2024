@@ -1,6 +1,8 @@
 mod machine;
 mod parse;
 
+use std::error::Error;
+
 use crate::Puzzle;
 
 const INPUT: &str = include_str!("input.txt");
@@ -8,50 +10,36 @@ const INPUT: &str = include_str!("input.txt");
 pub struct Part1;
 
 impl Part1 {
-    fn solve_input(input: &str) -> u64 {
-        let (_, machines) = parse::parse_input(input).unwrap();
+    fn solve_input(input: &str) -> Result<u64, Box<dyn Error>> {
+        let (_, machines) = parse::parse_input(input).map_err(|e| e.to_owned())?;
 
-        machines
-            .iter()
-            .map(|m| {
-                let res = m.solve();
-                dbg!(res);
-                res
-            })
-            .sum()
+        Ok(machines.iter().map(|m| m.solve()).sum())
     }
 }
 
 impl Puzzle for Part1 {
     fn solve(&self) -> Result<u64, Box<dyn std::error::Error>> {
-        Ok(Self::solve_input(INPUT))
+        Self::solve_input(INPUT)
     }
 }
 
 pub struct Part2;
 
 impl Part2 {
-    fn solve_input(input: &str) -> u64 {
-        let (_, mut machines) = parse::parse_input(input).unwrap();
+    fn solve_input(input: &str) -> Result<u64, Box<dyn Error>> {
+        let (_, mut machines) = parse::parse_input(input).map_err(|e| e.to_owned())?;
 
         for machine in machines.iter_mut() {
             machine.increase_prices();
         }
 
-        machines
-            .iter()
-            .map(|m| {
-                let res = m.solve();
-                dbg!(res);
-                res
-            })
-            .sum()
+        Ok(machines.iter().map(|m| m.solve()).sum())
     }
 }
 
 impl Puzzle for Part2 {
     fn solve(&self) -> Result<u64, Box<dyn std::error::Error>> {
-        Ok(Self::solve_input(INPUT))
+        Self::solve_input(INPUT)
     }
 }
 
@@ -63,11 +51,11 @@ mod tests {
 
     #[test]
     fn part1() {
-        assert_eq!(Part1::solve_input(TEST_INPUT), 480);
+        assert_eq!(Part1::solve_input(TEST_INPUT).unwrap(), 480);
     }
 
     #[test]
     fn part2() {
-        assert_eq!(Part2::solve_input(TEST_INPUT), 875318608908);
+        assert_eq!(Part2::solve_input(TEST_INPUT).unwrap(), 875318608908);
     }
 }
