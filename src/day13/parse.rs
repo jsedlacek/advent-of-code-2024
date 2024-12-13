@@ -80,6 +80,7 @@ mod tests {
         let res =
             parse_machine("Button A: X+94, Y+34\nButton B: X+22, Y+67\nPrize: X=8400, Y=5400");
         assert!(res.is_ok());
+
         let (_, machine) = res.unwrap();
         assert_eq!(
             machine,
@@ -91,6 +92,7 @@ mod tests {
     fn test_parse_button() {
         let res = parse_button("Button A: X+94, Y+34");
         assert!(res.is_ok());
+
         let (_, (name, point)) = res.unwrap();
         assert_eq!(name, "A");
         assert_eq!(point, Point(94, 34));
@@ -100,6 +102,7 @@ mod tests {
     fn test_parse_price() {
         let res = parse_price("Prize: X=8400, Y=5400");
         assert!(res.is_ok());
+
         let (_, point) = res.unwrap();
         assert_eq!(point, Point(8400, 5400));
     }
@@ -108,6 +111,7 @@ mod tests {
     fn test_parse_input() {
         let res = parse_input(TEST_INPUT);
         assert!(res.is_ok());
+
         let (_, machines) = res.unwrap();
         assert_eq!(
             machines[0],
