@@ -89,6 +89,12 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_machine_error() {
+        let res = parse_machine("Button A: X+94, Y+34\nPrize: X=8400, Y=5400");
+        assert!(res.is_err());
+    }
+
+    #[test]
     fn test_parse_button() {
         let res = parse_button("Button A: X+94, Y+34");
         assert!(res.is_ok());
