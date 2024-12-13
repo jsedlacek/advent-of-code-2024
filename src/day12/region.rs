@@ -70,13 +70,13 @@ impl Region {
     }
 
     fn sides(&self) -> u64 {
-        let mut points_vec = self.points.iter().cloned().collect::<Vec<_>>();
+        let mut points_vec = Vec::from_iter(self.points.iter().copied());
         points_vec.sort();
 
         let mut sides = 0;
         let mut processed_edges = HashSet::new();
 
-        for &point in &points_vec {
+        for point in points_vec {
             for direction in Direction::all() {
                 if self.points.contains(&(point + direction)) {
                     continue;
