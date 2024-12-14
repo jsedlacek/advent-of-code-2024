@@ -14,6 +14,7 @@ mod day10;
 mod day11;
 mod day12;
 mod day13;
+mod day14;
 
 use std::{collections::HashMap, time::Instant};
 
@@ -76,6 +77,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     days.insert((13, 1), Box::new(day13::Part1));
     days.insert((13, 2), Box::new(day13::Part2));
+
+    days.insert((14, 1), Box::new(day14::Part1));
 
     let mut puzzles = days
         .iter()

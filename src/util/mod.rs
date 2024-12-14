@@ -3,6 +3,15 @@ use std::ops::{Add, AddAssign, Sub, SubAssign};
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub struct Point(pub i64, pub i64);
 
+impl Point {
+    pub fn wrap(self, other: Point) -> Self {
+        let Point(x, y) = self;
+        let Point(max_x, max_y) = other;
+
+        Point(x.rem_euclid(max_x), y.rem_euclid(max_y))
+    }
+}
+
 impl Add for Point {
     type Output = Point;
 
@@ -91,5 +100,30 @@ impl Direction {
             Direction::Left,
             Direction::Right,
         ]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_point() {
+        let p = Point(11, 22);
+
+        assert_eq!(p.wrap(Point(10, 10)), Point(1, 2));
+
+        let p = Point(-5, -6);
+
+        assert_eq!(p.wrap(Point(10, 10)), Point(5, 4));
+    }
+
+    #[test]
+    fn test_direction() {
+        let d = Direction::Up;
+
+        assert_eq!(d.rotate_right(), Direction::Right);
+        assert_eq!(d.rotate_left(), Direction::Left);
+        assert_eq!(d.opposite(), Direction::Down);
     }
 }
