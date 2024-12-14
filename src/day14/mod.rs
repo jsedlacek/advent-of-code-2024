@@ -100,15 +100,15 @@ fn biggest_area(robots: &[Robot]) -> u64 {
 
         while let Some(position) = queue.pop_front() {
             for direction in Direction::all() {
-                let neighbor = position + direction;
+                let neighbor_pos = position + direction;
 
-                if !postitions.contains(&neighbor) {
+                if !postitions.contains(&neighbor_pos) {
                     continue;
                 }
 
-                if !processed_positions.contains(&neighbor) {
-                    processed_positions.insert(neighbor);
-                    queue.push_back(neighbor);
+                if !processed_positions.contains(&neighbor_pos) {
+                    processed_positions.insert(neighbor_pos);
+                    queue.push_back(neighbor_pos);
                     count += 1;
                 }
             }
@@ -127,15 +127,6 @@ mod tests {
     use super::*;
 
     const TEST_INPUT: &str = include_str!("test-input.txt");
-
-    // #[test]
-    // fn test_part_one_robot() {
-    //     let res = Part1::solve_input("p=2,4 v=2,-3");
-    //     assert!(res.is_ok());
-
-    //     let result = res.unwrap();
-    //     assert_eq!(result, 12);
-    // }
 
     #[test]
     fn test_part1() {
