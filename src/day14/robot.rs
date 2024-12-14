@@ -1,6 +1,6 @@
 use crate::util::Point;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Robot {
     pub position: Point,
     pub velocity: Point,
@@ -11,7 +11,7 @@ impl Robot {
         Robot { position, velocity }
     }
 
-    pub fn move_robot(&mut self, size: Point) {
+    pub fn move_forward(&mut self, size: Point) {
         self.position = (self.position + self.velocity).wrap(size);
     }
 }
@@ -37,7 +37,7 @@ mod tests {
             position: Point(5, 6),
             velocity: Point(8, -7),
         };
-        robot.move_robot(Point(10, 10));
+        robot.move_forward(Point(10, 10));
 
         assert_eq!(robot.position, Point(3, 9));
     }

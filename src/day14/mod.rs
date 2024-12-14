@@ -1,4 +1,11 @@
-use crate::{util::Point, Puzzle};
+use std::collections::{HashSet, VecDeque};
+
+use robot::Robot;
+
+use crate::{
+    util::{Direction, Point},
+    Puzzle,
+};
 
 mod parse;
 mod robot;
@@ -15,7 +22,7 @@ impl Part1 {
 
         for robot in robots.iter_mut() {
             for _ in 0..round_count {
-                robot.move_robot(size);
+                robot.move_forward(size);
             }
         }
 
@@ -47,6 +54,72 @@ impl Puzzle for Part1 {
     fn solve(&self) -> Result<u64, Box<dyn std::error::Error>> {
         Part1::solve_input(INPUT, Point(101, 103))
     }
+}
+
+pub struct Part2;
+
+impl Puzzle for Part2 {
+    fn solve(&self) -> Result<u64, Box<dyn std::error::Error>> {
+        let (_, mut robots) = parse::parse_input(INPUT).map_err(|e| e.to_owned())?;
+
+        let size = Point(101, 103);
+
+        for round in 0.. {
+            let area = biggest_area(&robots);
+
+            if area >= 100 {
+                return Ok(round);
+            }
+
+            for robot in robots.iter_mut() {
+                robot.move_forward(size);
+            }
+        }
+
+        Ok(0)
+    }
+}
+
+fn biggest_area(robots: &[Robot]) -> u64 {
+    let postitions = robots.iter().map(|r| r.position).collect::<HashSet<_>>();
+
+    let mut processed_positions = HashSet::new();
+
+    let mut max_count = 0;
+
+    for &position in postitions.iter() {
+        if processed_positions.contains(&position) {
+            continue;
+        }
+
+        let mut count = 0;
+        let mut queue = VecDeque::new();
+
+        processed_positions.insert(position);
+        queue.push_back(position);
+
+        while let Some(position) = queue.pop_front() {
+            for direction in Direction::all() {
+                let neighbor = position + direction;
+
+                if !postitions.contains(&neighbor) {
+                    continue;
+                }
+
+                if !processed_positions.contains(&neighbor) {
+                    processed_positions.insert(neighbor);
+                    queue.push_back(neighbor);
+                    count += 1;
+                }
+            }
+        }
+
+        if count > max_count {
+            max_count = count;
+        }
+    }
+
+    max_count
 }
 
 #[cfg(test)]
