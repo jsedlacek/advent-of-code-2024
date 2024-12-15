@@ -28,7 +28,7 @@ impl Game {
         Point(point.0 * 2, point.1)
     }
 
-    fn expand_points_set(points: impl Iterator<Item = Point>) -> impl Iterator<Item = Point> {
+    fn expand_points(points: impl Iterator<Item = Point>) -> impl Iterator<Item = Point> {
         points.flat_map(|p| {
             let p = Self::expand_point(p);
             [p, p + Direction::Right]
@@ -41,7 +41,7 @@ impl Game {
             wall_positions: self
                 .wall_positions
                 .iter()
-                .flat_map(|&p| Self::expand_points_set(std::iter::once(p)))
+                .flat_map(|&p| Self::expand_points(std::iter::once(p)))
                 .collect(),
             robot_position: Self::expand_point(self.robot_position),
             instructions: self.instructions.clone(),
@@ -134,6 +134,6 @@ impl GameBox {
     }
 
     fn expand(&self) -> Self {
-        Self::new(Game::expand_points_set(self.points.iter().copied()).collect())
+        Self::new(Game::expand_points(self.points.iter().copied()).collect())
     }
 }
