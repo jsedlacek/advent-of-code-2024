@@ -68,7 +68,7 @@ impl Game {
 
         self.boxes
             .iter()
-            .map(|b| b.pos())
+            .filter_map(|b| b.pos())
             .map(|Point(x, y)| x + y * 100)
             .sum::<i64>() as u64
     }
@@ -132,8 +132,8 @@ impl GameBox {
         self.points = self.points.iter().map(|&p| p + direction).collect();
     }
 
-    fn pos(&self) -> Point {
-        *self.points.iter().min_by_key(|Point(x, y)| (x, y)).unwrap()
+    fn pos(&self) -> Option<Point> {
+        self.points.iter().min_by_key(|Point(x, y)| (x, y)).copied()
     }
 
     fn expand(&self) -> Self {
