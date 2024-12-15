@@ -2,29 +2,6 @@ use std::collections::{HashSet, VecDeque};
 
 use crate::util::{Direction, Point};
 
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct GameBox {
-    points: HashSet<Point>,
-}
-
-impl GameBox {
-    pub fn new(points: HashSet<Point>) -> Self {
-        Self { points }
-    }
-
-    fn move_direction(&mut self, direction: Direction) {
-        self.points = self.points.iter().map(|&p| p + direction).collect();
-    }
-
-    fn pos(&self) -> Point {
-        *self.points.iter().min_by_key(|Point(x, y)| (x, y)).unwrap()
-    }
-
-    fn expand(&self) -> Self {
-        Self::new(Game::expand_points_set(&self.points))
-    }
-}
-
 pub struct Game {
     boxes: Vec<GameBox>,
     walls: HashSet<Point>,
@@ -140,5 +117,28 @@ impl Game {
         }
 
         true
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct GameBox {
+    points: HashSet<Point>,
+}
+
+impl GameBox {
+    pub fn new(points: HashSet<Point>) -> Self {
+        Self { points }
+    }
+
+    fn move_direction(&mut self, direction: Direction) {
+        self.points = self.points.iter().map(|&p| p + direction).collect();
+    }
+
+    fn pos(&self) -> Point {
+        *self.points.iter().min_by_key(|Point(x, y)| (x, y)).unwrap()
+    }
+
+    fn expand(&self) -> Self {
+        Self::new(Game::expand_points_set(&self.points))
     }
 }
