@@ -28,9 +28,7 @@ impl Game {
         Point(point.0 * 2, point.1)
     }
 
-    fn expand_points_set<'a>(
-        points: impl Iterator<Item = Point> + 'a,
-    ) -> impl Iterator<Item = Point> + 'a {
+    fn expand_points_set(points: impl Iterator<Item = Point>) -> impl Iterator<Item = Point> {
         points.flat_map(|p| {
             let p = Self::expand_point(p);
             [p, p + Direction::Right]
@@ -43,7 +41,7 @@ impl Game {
             wall_positions: self
                 .wall_positions
                 .iter()
-                .flat_map(|&p| Self::expand_points_set([p].into_iter()))
+                .flat_map(|&p| Self::expand_points_set(std::iter::once(p)))
                 .collect(),
             robot_position: Self::expand_point(self.robot_position),
             instructions: self.instructions.clone(),
@@ -51,7 +49,7 @@ impl Game {
     }
 
     pub fn play(&mut self) -> u64 {
-        for &direction in self.instructions.clone().iter() {
+        for &direction in &self.instructions.clone() {
             let next_position = self.robot_position + direction;
 
             if self.wall_positions.contains(&next_position) {
@@ -87,23 +85,23 @@ impl Game {
                 .boxes
                 .iter()
                 .filter(|b| b.points.contains(&point))
-                .flat_map(|b| b.points.iter().copied())
-                .collect::<Vec<_>>();
+                .flat_map(|b| b.points.iter().copied());
 
-            for &p in box_points.iter() {
+            for p in box_points {
                 source_points.insert(p);
-            }
 
-            for target_point in box_points.iter().map(|&p| p + direction) {
+                let target_point = p + direction;
                 if !source_points.contains(&target_point) {
                     queue.push_back(target_point);
                 }
             }
         }
 
-        let mut target_points = source_points.iter().map(|&p| p + direction);
-
-        if target_points.any(|p| self.wall_positions.contains(&p)) {
+        if source_points
+            .iter()
+            .map(|&p| p + direction)
+            .any(|p| self.wall_positions.contains(&p))
+        {
             return false;
         }
 
