@@ -1,7 +1,6 @@
 use crate::Puzzle;
 
 mod game;
-mod game_v2;
 mod parse;
 
 const INPUT: &str = include_str!("input.txt");
@@ -28,7 +27,7 @@ impl Part2 {
     fn solve_input(&self, input: &str) -> Result<u64, Box<dyn std::error::Error>> {
         let (_, game) = parse::parse_input(input).map_err(|e| e.to_owned())?;
 
-        let mut game = game_v2::Game::from_v1(game);
+        let mut game = game.expand();
 
         Ok(game.play())
     }

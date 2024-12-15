@@ -12,7 +12,7 @@ use nom::{
 
 use crate::util::{iter_2d, Direction};
 
-use super::game::Game;
+use super::game::{Game, GameBox};
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 enum ParseTile {
@@ -27,8 +27,8 @@ pub fn parse_input(input: &str) -> IResult<&str, Game> {
         |(tiles, _, instructions)| {
             let boxes = iter_2d(&tiles)
                 .filter(|(_, &tile)| tile == Some(ParseTile::Box))
-                .map(|(point, _)| point)
-                .collect::<HashSet<_>>();
+                .map(|(point, _)| GameBox::new(HashSet::from([point])))
+                .collect::<Vec<_>>();
 
             let walls = iter_2d(&tiles)
                 .filter(|(_, &tile)| tile == Some(ParseTile::Wall))
@@ -39,8 +39,6 @@ pub fn parse_input(input: &str) -> IResult<&str, Game> {
                 .find(|(_, &tile)| tile == Some(ParseTile::Robot))
                 .map(|(point, _)| point)
                 .unwrap();
-
-            // let robot = iter_2d(&tiles).map(|x| x);
 
             Game::new(boxes, walls, robot, instructions)
         },
