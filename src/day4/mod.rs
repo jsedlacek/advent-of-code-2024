@@ -1,4 +1,7 @@
-use crate::Puzzle;
+use crate::{
+    util::{iter_2d, Point},
+    Puzzle,
+};
 
 const INPUT: &str = include_str!("input.txt");
 
@@ -8,20 +11,20 @@ impl Part1 {
     fn solve_input(input: &str) -> u64 {
         let map = parse_input(input);
 
-        const DIRECTIONS: [(i64, i64); 8] = [
-            (0, 1),
-            (1, 0),
-            (0, -1),
-            (-1, 0),
-            (1, 1),
-            (-1, -1),
-            (1, -1),
-            (-1, 1),
+        const DIRECTIONS: [Point; 8] = [
+            Point(0, 1),
+            Point(1, 0),
+            Point(0, -1),
+            Point(-1, 0),
+            Point(1, 1),
+            Point(-1, -1),
+            Point(1, -1),
+            Point(-1, 1),
         ];
 
         iter_2d(&map)
-            .flat_map(|(x, y)| DIRECTIONS.iter().map(move |&direction| (x, y, direction)))
-            .filter(|&(x, y, direction)| has_match(&map, (x, y), direction))
+            .flat_map(|(point, _)| DIRECTIONS.iter().map(move |&direction| (point, direction)))
+            .filter(|&(point, direction)| has_match(&map, point, direction))
             .count() as u64
     }
 }
@@ -39,7 +42,7 @@ impl Part2 {
         let map = parse_input(input);
 
         iter_2d(&map)
-            .filter(|&(x, y)| has_match_part2(&map, (x, y)))
+            .filter(|&(point, _)| has_match_part2(&map, point))
             .count() as u64
     }
 }
@@ -50,14 +53,14 @@ impl Puzzle for Part2 {
     }
 }
 
-fn has_match(map: &Vec<Vec<char>>, pos: (usize, usize), direction: (i64, i64)) -> bool {
+fn has_match(map: &Vec<Vec<char>>, pos: Point, direction: Point) -> bool {
     const NEEDLE: &str = "XMAS";
 
-    let (x, y) = pos;
-    let (dx, dy) = direction;
+    let Point(x, y) = pos;
+    let Point(dx, dy) = direction;
 
-    let new_x = x as i64 + dx * (NEEDLE.len() - 1) as i64;
-    let new_y = y as i64 + dy * (NEEDLE.len() - 1) as i64;
+    let new_x = x + dx * (NEEDLE.len() - 1) as i64;
+    let new_y = y + dy * (NEEDLE.len() - 1) as i64;
 
     if new_x < 0 || new_x >= map[0].len() as i64 || new_y < 0 || new_y >= map.len() as i64 {
         return false;
@@ -72,11 +75,12 @@ fn has_match(map: &Vec<Vec<char>>, pos: (usize, usize), direction: (i64, i64)) -
     true
 }
 
-fn has_match_part2(map: &Vec<Vec<char>>, pos: (usize, usize)) -> bool {
+fn has_match_part2(map: &Vec<Vec<char>>, pos: Point) -> bool {
     const NEEDLE: &str = "MAS";
     const NEEDLE_REV: &str = "SAM";
 
-    let (x, y) = pos;
+    let Point(x, y) = pos;
+    let (x, y) = (x as usize, y as usize);
 
     if x + NEEDLE.len() > map[0].len() || y + NEEDLE.len() > map.len() {
         return false;
@@ -104,12 +108,6 @@ fn parse_input(input: &str) -> Vec<Vec<char>> {
         .collect()
 }
 
-fn iter_2d<T>(map: &Vec<Vec<T>>) -> impl Iterator<Item = (usize, usize)> + '_ {
-    map.iter()
-        .enumerate()
-        .flat_map(|(y, row)| row.iter().enumerate().map(move |(x, _)| (x, y)))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -130,16 +128,16 @@ mod tests {
     fn test_has_match() {
         let map = parse_input(TEST_INPUT);
 
-        assert!(has_match(&map, (5, 0), (1, 0)));
-        assert!(has_match(&map, (3, 9), (1, -1)));
-        assert!(has_match(&map, (3, 9), (-1, -1)));
+        assert!(has_match(&map, Point(5, 0), Point(1, 0)));
+        assert!(has_match(&map, Point(3, 9), Point(1, -1)));
+        assert!(has_match(&map, Point(3, 9), Point(-1, -1)));
     }
 
     #[test]
     fn test_has_match_part2() {
         let map = parse_input(TEST_INPUT);
 
-        assert!(has_match_part2(&map, (1, 0)));
+        assert!(has_match_part2(&map, Point(1, 0)));
     }
 
     #[test]

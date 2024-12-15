@@ -93,7 +93,7 @@ impl Direction {
         }
     }
 
-    pub(crate) fn all() -> [Self; 4] {
+    pub fn all() -> [Self; 4] {
         [
             Direction::Up,
             Direction::Down,
@@ -101,6 +101,14 @@ impl Direction {
             Direction::Right,
         ]
     }
+}
+
+pub fn iter_2d<T>(map: &Vec<Vec<T>>) -> impl Iterator<Item = (Point, &T)> + '_ {
+    map.iter().enumerate().flat_map(|(y, row)| {
+        row.iter()
+            .enumerate()
+            .map(move |(x, value)| (Point(x as i64, y as i64), value))
+    })
 }
 
 #[cfg(test)]
