@@ -8,7 +8,7 @@ pub struct GameBox {
 }
 
 impl GameBox {
-    pub fn new(points: HashSet<Point>) -> GameBox {
+    pub fn new(points: HashSet<Point>) -> Self {
         Self { points }
     }
 
@@ -20,8 +20,8 @@ impl GameBox {
         *self.points.iter().min_by_key(|Point(x, y)| (x, y)).unwrap()
     }
 
-    fn expand(&self) -> GameBox {
-        GameBox::new(Game::expand_points_set(&self.points))
+    fn expand(&self) -> Self {
+        Self::new(Game::expand_points_set(&self.points))
     }
 }
 
@@ -38,7 +38,7 @@ impl Game {
         walls: HashSet<Point>,
         robot: Point,
         instructions: Vec<Direction>,
-    ) -> Game {
+    ) -> Self {
         Self {
             boxes,
             walls,
@@ -97,12 +97,16 @@ impl Game {
     }
 
     fn push_boxes(&mut self, point: Point, direction: Direction) -> bool {
-        let mut points_to_move = HashSet::new();
+        let mut source_points = HashSet::new();
 
         let mut queue = VecDeque::new();
         queue.push_back(point);
 
         while let Some(point) = queue.pop_front() {
+            if source_points.contains(&point) {
+                continue;
+            }
+
             let box_points = self
                 .boxes
                 .iter()
@@ -111,24 +115,24 @@ impl Game {
                 .collect::<Vec<_>>();
 
             for &p in box_points.iter() {
-                points_to_move.insert(p);
+                source_points.insert(p);
             }
 
-            for moved_point in box_points.iter().map(|&p| p + direction) {
-                if !points_to_move.contains(&moved_point) {
-                    queue.push_back(moved_point);
+            for target_point in box_points.iter().map(|&p| p + direction) {
+                if !source_points.contains(&target_point) {
+                    queue.push_back(target_point);
                 }
             }
         }
 
-        let mut moved_points = points_to_move.iter().map(|&p| p + direction);
+        let mut target_points = source_points.iter().map(|&p| p + direction);
 
-        if moved_points.any(|p| self.walls.contains(&p)) {
+        if target_points.any(|p| self.walls.contains(&p)) {
             return false;
         }
 
         for b in self.boxes.iter_mut() {
-            if b.points.is_disjoint(&points_to_move) {
+            if b.points.is_disjoint(&source_points) {
                 continue;
             }
 
