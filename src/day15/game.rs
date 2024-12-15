@@ -12,14 +12,14 @@ pub struct Game {
 impl Game {
     pub fn new(
         boxes: Vec<GameBox>,
-        walls: HashSet<Point>,
-        robot: Point,
+        wall_positions: HashSet<Point>,
+        robot_position: Point,
         instructions: Vec<Direction>,
     ) -> Self {
         Self {
             boxes,
-            wall_positions: walls,
-            robot_position: robot,
+            wall_positions,
+            robot_position,
             instructions,
         }
     }
