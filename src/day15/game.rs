@@ -28,14 +28,13 @@ impl Game {
         Point(point.0 * 2, point.1)
     }
 
-    fn expand_points_set(points: &HashSet<Point>) -> HashSet<Point> {
-        points
-            .into_iter()
-            .flat_map(|&p| {
-                let p = Self::expand_point(p);
-                [p, p + Direction::Right]
-            })
-            .collect()
+    fn expand_points_set<'a>(
+        points: impl Iterator<Item = Point> + 'a,
+    ) -> impl Iterator<Item = Point> + 'a {
+        points.flat_map(|p| {
+            let p = Self::expand_point(p);
+            [p, p + Direction::Right]
+        })
     }
 
     pub fn expand(&self) -> Self {
@@ -44,7 +43,7 @@ impl Game {
             walls: self
                 .walls
                 .iter()
-                .flat_map(|&p| Self::expand_points_set(&HashSet::from([p])))
+                .flat_map(|&p| Self::expand_points_set([p].into_iter()))
                 .collect(),
             robot: Self::expand_point(self.robot),
             instructions: self.instructions.clone(),
@@ -137,6 +136,6 @@ impl GameBox {
     }
 
     fn expand(&self) -> Self {
-        Self::new(Game::expand_points_set(&self.points))
+        Self::new(Game::expand_points_set(self.points.iter().copied()).collect())
     }
 }
