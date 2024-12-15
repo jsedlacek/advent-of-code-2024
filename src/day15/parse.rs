@@ -30,17 +30,17 @@ pub fn parse_input(input: &str) -> IResult<&str, Game> {
                 .map(|(point, _)| GameBox::new(HashSet::from([point])))
                 .collect::<Vec<_>>();
 
-            let walls = iter_2d(&tiles)
+            let wall_positions = iter_2d(&tiles)
                 .filter(|(_, &tile)| tile == Some(ParseTile::Wall))
                 .map(|(point, _)| point)
                 .collect::<HashSet<_>>();
 
-            let robot = iter_2d(&tiles)
+            let robot_position = iter_2d(&tiles)
                 .find(|(_, &tile)| tile == Some(ParseTile::Robot))
                 .map(|(point, _)| point)
                 .unwrap();
 
-            Game::new(boxes, walls, robot, instructions)
+            Game::new(boxes, wall_positions, robot_position, instructions)
         },
     )(input)
 }
@@ -114,6 +114,6 @@ mod tests {
     #[test]
     fn test_parse_input() {
         let (_, game) = parse_input(TEST_INPUT).unwrap();
-        assert_eq!(game.robot, Point(4, 4),)
+        assert_eq!(game.robot_position, Point(4, 4),)
     }
 }

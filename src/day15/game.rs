@@ -4,8 +4,8 @@ use crate::util::{Direction, Point};
 
 pub struct Game {
     boxes: Vec<GameBox>,
-    walls: HashSet<Point>,
-    pub robot: Point,
+    wall_positions: HashSet<Point>,
+    pub robot_position: Point,
     instructions: Vec<Direction>,
 }
 
@@ -18,8 +18,8 @@ impl Game {
     ) -> Self {
         Self {
             boxes,
-            walls,
-            robot,
+            wall_positions: walls,
+            robot_position: robot,
             instructions,
         }
     }
@@ -40,21 +40,21 @@ impl Game {
     pub fn expand(&self) -> Self {
         Self {
             boxes: self.boxes.iter().map(|b| b.expand()).collect(),
-            walls: self
-                .walls
+            wall_positions: self
+                .wall_positions
                 .iter()
                 .flat_map(|&p| Self::expand_points_set([p].into_iter()))
                 .collect(),
-            robot: Self::expand_point(self.robot),
+            robot_position: Self::expand_point(self.robot_position),
             instructions: self.instructions.clone(),
         }
     }
 
     pub fn play(&mut self) -> u64 {
         for &direction in self.instructions.clone().iter() {
-            let next_position = self.robot + direction;
+            let next_position = self.robot_position + direction;
 
-            if self.walls.contains(&next_position) {
+            if self.wall_positions.contains(&next_position) {
                 continue;
             }
 
@@ -62,7 +62,7 @@ impl Game {
                 continue;
             }
 
-            self.robot = self.robot + direction;
+            self.robot_position += direction;
         }
 
         self.boxes
@@ -103,7 +103,7 @@ impl Game {
 
         let mut target_points = source_points.iter().map(|&p| p + direction);
 
-        if target_points.any(|p| self.walls.contains(&p)) {
+        if target_points.any(|p| self.wall_positions.contains(&p)) {
             return false;
         }
 
