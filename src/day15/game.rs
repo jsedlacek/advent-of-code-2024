@@ -9,12 +9,6 @@ pub struct Game {
     pub instructions: Vec<Direction>,
 }
 
-#[derive(Debug, PartialEq)]
-enum RobotPosition {
-    Left,
-    Right,
-}
-
 impl Game {
     pub fn new(
         boxes: HashSet<Point>,

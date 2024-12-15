@@ -21,12 +21,6 @@ impl Box {
     }
 }
 
-#[derive(Debug, PartialEq)]
-enum RobotPosition {
-    Left,
-    Right,
-}
-
 pub struct Game {
     boxes: Vec<Box>,
     walls: HashSet<Point>,
@@ -35,20 +29,6 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new(
-        boxes: Vec<Box>,
-        walls: HashSet<Point>,
-        robot: Point,
-        instructions: Vec<Direction>,
-    ) -> Self {
-        Self {
-            boxes,
-            walls,
-            robot,
-            instructions,
-        }
-    }
-
     fn point_from_v1(point: Point) -> Point {
         Point(point.0 * 2, point.1)
     }
