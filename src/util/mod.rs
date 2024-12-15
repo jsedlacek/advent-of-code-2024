@@ -99,13 +99,14 @@ impl Direction {
         }
     }
 
-    pub fn all() -> [Self; 4] {
+    pub fn all() -> impl Iterator<Item = Self> {
         [
             Direction::Up,
             Direction::Down,
             Direction::Left,
             Direction::Right,
         ]
+        .into_iter()
     }
 }
 
