@@ -109,11 +109,9 @@ impl Game {
         }
 
         for b in self.boxes.iter_mut() {
-            if b.points.is_disjoint(&source_points) {
-                continue;
+            if !b.points.is_disjoint(&source_points) {
+                b.move_direction(direction);
             }
-
-            b.move_direction(direction);
         }
 
         true
