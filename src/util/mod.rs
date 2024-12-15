@@ -55,6 +55,12 @@ impl Add<Direction> for Point {
     }
 }
 
+impl AddAssign<Direction> for Point {
+    fn add_assign(&mut self, rhs: Direction) {
+        *self = *self + rhs;
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum Direction {
     Up,
