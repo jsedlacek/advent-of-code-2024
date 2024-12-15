@@ -3,10 +3,16 @@ use std::collections::HashSet;
 use crate::util::{Direction, Point};
 
 pub struct Game {
-    boxes: HashSet<Point>,
-    walls: HashSet<Point>,
+    pub boxes: HashSet<Point>,
+    pub walls: HashSet<Point>,
     pub robot: Point,
-    instructions: Vec<Direction>,
+    pub instructions: Vec<Direction>,
+}
+
+#[derive(Debug, PartialEq)]
+enum RobotPosition {
+    Left,
+    Right,
 }
 
 impl Game {
