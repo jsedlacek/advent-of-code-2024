@@ -48,9 +48,9 @@ impl Add<Direction> for Point {
     fn add(self, dir: Direction) -> Self::Output {
         self + match dir {
             Direction::Up => Point(0, -1),
+            Direction::Right => Point(1, 0),
             Direction::Down => Point(0, 1),
             Direction::Left => Point(-1, 0),
-            Direction::Right => Point(1, 0),
         }
     }
 }
@@ -61,29 +61,29 @@ impl AddAssign<Direction> for Point {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, PartialOrd, Ord)]
 pub enum Direction {
     Up,
+    Right,
     Down,
     Left,
-    Right,
 }
 
 impl Direction {
-    pub fn rotate_right(&self) -> Direction {
+    pub fn rotate_clockwise(&self) -> Direction {
         match self {
             Direction::Up => Direction::Right,
+            Direction::Right => Direction::Down,
             Direction::Down => Direction::Left,
             Direction::Left => Direction::Up,
-            Direction::Right => Direction::Down,
         }
     }
 
-    pub fn rotate_left(&self) -> Direction {
+    pub fn rotate_counterclockwise(&self) -> Direction {
         match self {
             Direction::Up => Direction::Left,
-            Direction::Down => Direction::Right,
             Direction::Left => Direction::Down,
+            Direction::Down => Direction::Right,
             Direction::Right => Direction::Up,
         }
     }
@@ -93,8 +93,8 @@ impl Direction {
     pub fn opposite(&self) -> Direction {
         match self {
             Direction::Up => Direction::Down,
-            Direction::Down => Direction::Up,
             Direction::Left => Direction::Right,
+            Direction::Down => Direction::Up,
             Direction::Right => Direction::Left,
         }
     }
@@ -139,8 +139,8 @@ mod tests {
     fn test_direction() {
         let d = Direction::Up;
 
-        assert_eq!(d.rotate_right(), Direction::Right);
-        assert_eq!(d.rotate_left(), Direction::Left);
+        assert_eq!(d.rotate_clockwise(), Direction::Right);
+        assert_eq!(d.rotate_counterclockwise(), Direction::Left);
         assert_eq!(d.opposite(), Direction::Down);
     }
 }

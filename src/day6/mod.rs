@@ -131,7 +131,7 @@ impl Game {
 
             match self.map.get(&new_pos) {
                 Some(Tile::Empty) => return Some((dir, new_pos)),
-                Some(Tile::Wall) => dir = dir.rotate_right(),
+                Some(Tile::Wall) => dir = dir.rotate_clockwise(),
                 _ => return None,
             }
         }

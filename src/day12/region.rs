@@ -82,8 +82,8 @@ impl Region {
                     continue;
                 }
 
-                let left_neighbor = point + direction.rotate_left();
-                let right_neighbor = point + direction.rotate_right();
+                let left_neighbor = point + direction.rotate_counterclockwise();
+                let right_neighbor = point + direction.rotate_clockwise();
 
                 if !processed_edges.contains(&(left_neighbor, direction))
                     && !processed_edges.contains(&(right_neighbor, direction))
