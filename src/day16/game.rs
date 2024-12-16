@@ -189,35 +189,32 @@ mod tests {
     #[test]
     fn test_binary_heap() {
         let mut queue = BinaryHeap::new();
+
+        let node = Node {
+            position: Point(0, 0),
+            direction: Direction::Right,
+        };
+
         queue.push(QueueItem {
-            node: Node {
-                position: Point(0, 0),
-                direction: Direction::Right,
-            },
+            node,
             score: 0,
             prev_node: None,
         });
+
         queue.push(QueueItem {
-            node: Node {
-                position: Point(1, 0),
-                direction: Direction::Right,
-            },
+            node,
             score: 2,
             prev_node: None,
         });
+
         queue.push(QueueItem {
-            node: Node {
-                position: Point(2, 0),
-                direction: Direction::Right,
-            },
+            node,
             score: 1,
             prev_node: None,
         });
+
         queue.push(QueueItem {
-            node: Node {
-                position: Point(3, 0),
-                direction: Direction::Right,
-            },
+            node,
             score: 1,
             prev_node: None,
         });
