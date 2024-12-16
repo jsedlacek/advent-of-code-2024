@@ -16,28 +16,26 @@ struct Node {
 
 impl Node {
     fn moves(&self) -> impl Iterator<Item = (u64, Node)> {
-        let pos = self.position;
-        let dir = self.direction;
         [
             (
                 1,
                 Node {
-                    position: pos + dir,
-                    direction: dir,
+                    position: self.position + self.direction,
+                    direction: self.direction,
                 },
             ),
             (
                 1000,
                 Node {
-                    position: pos,
-                    direction: dir.rotate_counterclockwise(),
+                    position: self.position,
+                    direction: self.direction.rotate_counterclockwise(),
                 },
             ),
             (
                 1000,
                 Node {
-                    position: pos,
-                    direction: dir.rotate_clockwise(),
+                    position: self.position,
+                    direction: self.direction.rotate_clockwise(),
                 },
             ),
         ]
@@ -84,6 +82,7 @@ impl Game {
         let mut back_track: HashMap<Node, (u64, HashSet<Node>)> = HashMap::new();
 
         let mut queue = BinaryHeap::new();
+
         queue.push(QueueItem {
             node: Node {
                 position: self.start,
