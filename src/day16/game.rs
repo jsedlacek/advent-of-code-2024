@@ -1,4 +1,4 @@
-use std::collections::{BinaryHeap, HashMap, HashSet};
+use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 
 use crate::util::{Direction, Point};
 
@@ -9,7 +9,7 @@ pub struct Game {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-struct QueueItem(Point, Direction, u64, HashSet<Point>);
+struct QueueItem(Point, Direction, u64, Option<(Point, Direction)>);
 
 impl Ord for QueueItem {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
@@ -44,42 +44,23 @@ impl Game {
     }
 
     pub fn best_paths(&self) -> (u64, HashSet<Point>) {
-        let mut visited = HashMap::new();
+        let mut back_track: HashMap<(Point, Direction), (u64, HashSet<(Point, Direction)>)> =
+            HashMap::new();
 
         let mut queue = BinaryHeap::new();
-        queue.push(QueueItem(self.start, Direction::Right, 0, HashSet::new()));
+        queue.push(QueueItem(self.start, Direction::Right, 0, None));
 
-        let mut min_score = None;
-        let mut best_path_positions = HashSet::new();
+        while let Some(QueueItem(pos, dir, score, prev_node)) = queue.pop() {
+            let (min_score, set) = back_track
+                .entry((pos, dir))
+                .or_insert_with(|| (score, HashSet::new()));
 
-        loop {
-            let QueueItem(pos, dir, score, path) = queue.pop().expect("No path found");
-
-            if let Some(&visited_score) = visited.get(&(pos, dir)) {
-                if visited_score < score {
-                    continue;
-                }
+            if score > *min_score {
+                continue;
             }
 
-            visited.insert((pos, dir), score);
-
-            if let Some(min_score) = min_score {
-                if score > min_score {
-                    break;
-                }
-            }
-
-            let mut path = path.clone();
-            path.insert(pos);
-
-            if pos == self.exit {
-                if min_score.is_none() {
-                    min_score = Some(score);
-                }
-
-                for &point in &path {
-                    best_path_positions.insert(point);
-                }
+            if let Some(prev_node) = prev_node {
+                set.insert(prev_node);
             }
 
             for (next_pos, next_dir, next_score) in [
@@ -88,12 +69,38 @@ impl Game {
                 (pos, dir.rotate_clockwise(), score + 1000),
             ] {
                 if !self.walls.contains(&next_pos) {
-                    queue.push(QueueItem(next_pos, next_dir, next_score, path.clone()));
+                    queue.push(QueueItem(next_pos, next_dir, next_score, Some((pos, dir))));
                 }
             }
         }
 
-        return (min_score.unwrap(), best_path_positions);
+        let mut points = HashSet::new();
+        let mut queue = VecDeque::new();
+
+        let dirs = Direction::all().filter_map(|dir| {
+            back_track
+                .get(&(self.exit, dir))
+                .map(|&(score, _)| (dir, score))
+        });
+
+        let min_score = dirs.clone().map(|(_, score)| score).min().unwrap();
+
+        for dir in dirs
+            .filter(|&(_, score)| score == min_score)
+            .map(|(dir, _)| dir)
+        {
+            queue.push_back((self.exit, dir));
+        }
+
+        while let Some((pos, dir)) = queue.pop_front() {
+            points.insert(pos);
+
+            if let Some((_, set)) = back_track.get(&(pos, dir)) {
+                queue.extend(set.iter());
+            }
+        }
+
+        (min_score, points)
     }
 }
 
@@ -131,10 +138,10 @@ mod tests {
     #[test]
     fn test_binary_heap() {
         let mut queue = BinaryHeap::new();
-        queue.push(QueueItem(Point(0, 0), Direction::Right, 0, HashSet::new()));
-        queue.push(QueueItem(Point(1, 0), Direction::Right, 2, HashSet::new()));
-        queue.push(QueueItem(Point(2, 0), Direction::Right, 1, HashSet::new()));
-        queue.push(QueueItem(Point(3, 0), Direction::Right, 1, HashSet::new()));
+        queue.push(QueueItem(Point(0, 0), Direction::Right, 0, None));
+        queue.push(QueueItem(Point(1, 0), Direction::Right, 2, None));
+        queue.push(QueueItem(Point(2, 0), Direction::Right, 1, None));
+        queue.push(QueueItem(Point(3, 0), Direction::Right, 1, None));
 
         assert_eq!(queue.pop().unwrap().2, 0);
         assert_eq!(queue.pop().unwrap().2, 1);

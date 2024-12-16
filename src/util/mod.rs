@@ -99,7 +99,7 @@ impl Direction {
         }
     }
 
-    pub fn all() -> impl Iterator<Item = Self> {
+    pub fn all() -> impl Iterator<Item = Direction> + Clone {
         [
             Direction::Up,
             Direction::Down,
