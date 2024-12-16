@@ -113,7 +113,7 @@ impl Direction {
 pub fn iter_2d<T>(
     map: impl IntoIterator<Item = impl IntoIterator<Item = T>>,
 ) -> impl Iterator<Item = (Point, T)> {
-    map.into_iter().enumerate().flat_map(move |(y, row)| {
+    map.into_iter().enumerate().flat_map(|(y, row)| {
         row.into_iter()
             .enumerate()
             .map(move |(x, value)| (Point(x as i64, y as i64), value))
