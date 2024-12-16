@@ -104,12 +104,10 @@ impl Game {
 
         let min_score = dirs.clone().map(|(_, score)| score).min().unwrap();
 
-        for dir in dirs
-            .filter(|&(_, score)| score == min_score)
-            .map(|(dir, _)| dir)
-        {
-            queue.push_back(Node(self.exit, dir));
-        }
+        queue.extend(
+            dirs.filter(|&(_, score)| score == min_score)
+                .map(|(dir, _)| Node(self.exit, dir)),
+        );
 
         while let Some(node) = queue.pop_front() {
             points.insert(node.0);
