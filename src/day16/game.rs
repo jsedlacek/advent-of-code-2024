@@ -9,26 +9,52 @@ pub struct Game {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-struct Node(Point, Direction);
+struct Node {
+    position: Point,
+    direction: Direction,
+}
 
 impl Node {
     fn moves(&self) -> impl Iterator<Item = (u64, Node)> {
-        let &Self(pos, dir) = self;
-        return [
-            (1, Node(pos + dir, dir)),
-            (1000, Node(pos, dir.rotate_counterclockwise())),
-            (1000, Node(pos, dir.rotate_clockwise())),
+        let pos = self.position;
+        let dir = self.direction;
+        [
+            (
+                1,
+                Node {
+                    position: pos + dir,
+                    direction: dir,
+                },
+            ),
+            (
+                1000,
+                Node {
+                    position: pos,
+                    direction: dir.rotate_counterclockwise(),
+                },
+            ),
+            (
+                1000,
+                Node {
+                    position: pos,
+                    direction: dir.rotate_clockwise(),
+                },
+            ),
         ]
-        .into_iter();
+        .into_iter()
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-struct QueueItem(Node, u64, Option<Node>);
+struct QueueItem {
+    node: Node,
+    score: u64,
+    prev_node: Option<Node>,
+}
 
 impl Ord for QueueItem {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.1.cmp(&other.1).reverse()
+        other.score.cmp(&self.score)
     }
 }
 
@@ -39,12 +65,8 @@ impl PartialOrd for QueueItem {
 }
 
 impl Game {
-    pub fn new(walls: HashSet<Point>, player: Point, exit: Point) -> Self {
-        Self {
-            walls,
-            start: player,
-            exit,
-        }
+    pub fn new(walls: HashSet<Point>, start: Point, exit: Point) -> Self {
+        Self { walls, start, exit }
     }
 
     pub fn part1(&self) -> u64 {
@@ -59,21 +81,24 @@ impl Game {
     }
 
     pub fn best_paths(&self) -> (u64, HashSet<Point>) {
-        let mut back_track: HashMap<
-            // target node
-            Node,
-            (
-                // score
-                u64,
-                // previous nodes
-                HashSet<Node>,
-            ),
-        > = HashMap::new();
+        let mut back_track: HashMap<Node, (u64, HashSet<Node>)> = HashMap::new();
 
         let mut queue = BinaryHeap::new();
-        queue.push(QueueItem(Node(self.start, Direction::Right), 0, None));
+        queue.push(QueueItem {
+            node: Node {
+                position: self.start,
+                direction: Direction::Right,
+            },
+            score: 0,
+            prev_node: None,
+        });
 
-        while let Some(QueueItem(node, score, prev_node)) = queue.pop() {
+        while let Some(QueueItem {
+            node,
+            score,
+            prev_node,
+        }) = queue.pop()
+        {
             let (min_score, set) = back_track
                 .entry(node)
                 .or_insert_with(|| (score, HashSet::new()));
@@ -87,8 +112,12 @@ impl Game {
             }
 
             for (move_score, move_node) in node.moves() {
-                if !self.walls.contains(&move_node.0) {
-                    queue.push(QueueItem(move_node, score + move_score, Some(node)));
+                if !self.walls.contains(&move_node.position) {
+                    queue.push(QueueItem {
+                        node: move_node,
+                        score: score + move_score,
+                        prev_node: Some(node),
+                    });
                 }
             }
         }
@@ -98,7 +127,10 @@ impl Game {
 
         let dirs = Direction::all().filter_map(|dir| {
             back_track
-                .get(&Node(self.exit, dir))
+                .get(&Node {
+                    position: self.exit,
+                    direction: dir,
+                })
                 .map(|&(score, _)| (dir, score))
         });
 
@@ -106,11 +138,14 @@ impl Game {
 
         queue.extend(
             dirs.filter(|&(_, score)| score == min_score)
-                .map(|(dir, _)| Node(self.exit, dir)),
+                .map(|(dir, _)| Node {
+                    position: self.exit,
+                    direction: dir,
+                }),
         );
 
         while let Some(node) = queue.pop_front() {
-            points.insert(node.0);
+            points.insert(node.position);
 
             if let Some((_, set)) = back_track.get(&node) {
                 queue.extend(set.iter().cloned());
@@ -155,15 +190,43 @@ mod tests {
     #[test]
     fn test_binary_heap() {
         let mut queue = BinaryHeap::new();
-        queue.push(QueueItem(Node(Point(0, 0), Direction::Right), 0, None));
-        queue.push(QueueItem(Node(Point(1, 0), Direction::Right), 2, None));
-        queue.push(QueueItem(Node(Point(2, 0), Direction::Right), 1, None));
-        queue.push(QueueItem(Node(Point(3, 0), Direction::Right), 1, None));
+        queue.push(QueueItem {
+            node: Node {
+                position: Point(0, 0),
+                direction: Direction::Right,
+            },
+            score: 0,
+            prev_node: None,
+        });
+        queue.push(QueueItem {
+            node: Node {
+                position: Point(1, 0),
+                direction: Direction::Right,
+            },
+            score: 2,
+            prev_node: None,
+        });
+        queue.push(QueueItem {
+            node: Node {
+                position: Point(2, 0),
+                direction: Direction::Right,
+            },
+            score: 1,
+            prev_node: None,
+        });
+        queue.push(QueueItem {
+            node: Node {
+                position: Point(3, 0),
+                direction: Direction::Right,
+            },
+            score: 1,
+            prev_node: None,
+        });
 
-        assert_eq!(queue.pop().unwrap().1, 0);
-        assert_eq!(queue.pop().unwrap().1, 1);
-        assert_eq!(queue.pop().unwrap().1, 1);
-        assert_eq!(queue.pop().unwrap().1, 2);
+        assert_eq!(queue.pop().unwrap().score, 0);
+        assert_eq!(queue.pop().unwrap().score, 1);
+        assert_eq!(queue.pop().unwrap().score, 1);
+        assert_eq!(queue.pop().unwrap().score, 2);
         assert_eq!(queue.pop(), None);
     }
 }
