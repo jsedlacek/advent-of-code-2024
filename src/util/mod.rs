@@ -110,9 +110,13 @@ impl Direction {
     }
 }
 
-pub fn iter_2d<T>(map: &Vec<Vec<T>>) -> impl Iterator<Item = (Point, &T)> {
-    map.iter().enumerate().flat_map(|(y, row)| {
-        row.iter()
+pub fn iter_2d<T, R, C>(map: R) -> impl Iterator<Item = (Point, T)>
+where
+    R: IntoIterator<Item = C>,
+    C: IntoIterator<Item = T>,
+{
+    map.into_iter().enumerate().flat_map(move |(y, row)| {
+        row.into_iter()
             .enumerate()
             .map(move |(x, value)| (Point(x as i64, y as i64), value))
     })
