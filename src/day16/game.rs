@@ -124,7 +124,7 @@ impl Game {
         let mut points = HashSet::new();
         let mut queue = VecDeque::new();
 
-        let dirs = Direction::all().filter_map(|dir| {
+        let dir_scores = Direction::all().filter_map(|dir| {
             back_track
                 .get(&Node {
                     position: self.exit,
@@ -133,10 +133,11 @@ impl Game {
                 .map(|&(score, _)| (dir, score))
         });
 
-        let min_score = dirs.clone().map(|(_, score)| score).min().unwrap();
+        let min_score = dir_scores.clone().map(|(_, score)| score).min().unwrap();
 
         queue.extend(
-            dirs.filter(|&(_, score)| score == min_score)
+            dir_scores
+                .filter(|&(_, score)| score == min_score)
                 .map(|(dir, _)| Node {
                     position: self.exit,
                     direction: dir,
