@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use crate::{
     util::{iter_2d, Point},
     Puzzle,
@@ -30,8 +32,8 @@ impl Part1 {
 }
 
 impl Puzzle for Part1 {
-    fn solve(&self) -> Result<u64, Box<dyn std::error::Error>> {
-        Ok(Part1::solve_input(INPUT))
+    fn solve(&self) -> Result<String, Box<dyn Error>> {
+        Ok(Part1::solve_input(INPUT)).map(|res| res.to_string())
     }
 }
 
@@ -48,8 +50,8 @@ impl Part2 {
 }
 
 impl Puzzle for Part2 {
-    fn solve(&self) -> Result<u64, Box<dyn std::error::Error>> {
-        Ok(Part2::solve_input(INPUT))
+    fn solve(&self) -> Result<String, Box<dyn Error>> {
+        Ok(Part2::solve_input(INPUT)).map(|res| res.to_string())
     }
 }
 

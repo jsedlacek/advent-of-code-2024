@@ -17,13 +17,14 @@ mod day13;
 mod day14;
 mod day15;
 mod day16;
+mod day17;
 
 use std::{collections::HashMap, time::Instant};
 
 use clap::Parser;
 
 pub trait Puzzle {
-    fn solve(&self) -> Result<u64, Box<dyn std::error::Error>>;
+    fn solve(&self) -> Result<String, Box<dyn std::error::Error>>;
 }
 
 #[derive(Parser, Debug)]
@@ -88,6 +89,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     days.insert((16, 1), Box::new(day16::Part1));
     days.insert((16, 2), Box::new(day16::Part2));
+
+    days.insert((17, 1), Box::new(day17::Part1));
 
     let mut puzzles = days
         .iter()

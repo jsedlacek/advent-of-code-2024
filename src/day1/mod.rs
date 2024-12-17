@@ -23,8 +23,8 @@ impl Part1 {
 }
 
 impl Puzzle for Part1 {
-    fn solve(&self) -> Result<u64, Box<dyn Error>> {
-        Self::solve_input(INPUT)
+    fn solve(&self) -> Result<String, Box<dyn Error>> {
+        Self::solve_input(INPUT).map(|res| res.to_string())
     }
 }
 
@@ -34,16 +34,18 @@ impl Part2 {
     fn solve_input(input: &str) -> Result<u64, Box<dyn Error>> {
         let [list1, list2] = parse_input(input)?;
 
-        Ok(list1
+        let res = list1
             .iter()
             .map(|a| list2.iter().filter(|b| a == *b).count() as u64 * a)
-            .sum())
+            .sum::<u64>();
+
+        Ok(res)
     }
 }
 
 impl Puzzle for Part2 {
-    fn solve(&self) -> Result<u64, Box<dyn Error>> {
-        Self::solve_input(INPUT)
+    fn solve(&self) -> Result<String, Box<dyn Error>> {
+        Self::solve_input(INPUT).map(|res| res.to_string())
     }
 }
 

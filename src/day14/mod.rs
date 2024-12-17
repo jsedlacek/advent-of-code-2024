@@ -1,4 +1,7 @@
-use std::collections::{HashSet, VecDeque};
+use std::{
+    collections::{HashSet, VecDeque},
+    error::Error,
+};
 
 use robot::Robot;
 
@@ -15,7 +18,7 @@ const INPUT: &str = include_str!("input.txt");
 pub struct Part1;
 
 impl Part1 {
-    fn solve_input(input: &str, size: Point) -> Result<u64, Box<dyn std::error::Error>> {
+    fn solve_input(input: &str, size: Point) -> Result<u64, Box<dyn Error>> {
         let (_, mut robots) = parse::parse_input(input).map_err(|e| e.to_owned())?;
 
         let round_count = 100;
@@ -51,15 +54,15 @@ impl Part1 {
 }
 
 impl Puzzle for Part1 {
-    fn solve(&self) -> Result<u64, Box<dyn std::error::Error>> {
-        Part1::solve_input(INPUT, Point(101, 103))
+    fn solve(&self) -> Result<String, Box<dyn Error>> {
+        Part1::solve_input(INPUT, Point(101, 103)).map(|res| res.to_string())
     }
 }
 
 pub struct Part2;
 
 impl Puzzle for Part2 {
-    fn solve(&self) -> Result<u64, Box<dyn std::error::Error>> {
+    fn solve(&self) -> Result<String, Box<dyn Error>> {
         let (_, mut robots) = parse::parse_input(INPUT).map_err(|e| e.to_owned())?;
 
         let size = Point(101, 103);
@@ -68,7 +71,7 @@ impl Puzzle for Part2 {
             let area = biggest_area(&robots);
 
             if area >= 100 {
-                return Ok(round);
+                return Ok(round.to_string());
             }
 
             for robot in robots.iter_mut() {
@@ -76,7 +79,7 @@ impl Puzzle for Part2 {
             }
         }
 
-        Ok(0)
+        panic!("Not found");
     }
 }
 
