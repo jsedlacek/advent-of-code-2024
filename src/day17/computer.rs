@@ -35,6 +35,7 @@ impl Instruction {
     }
 }
 
+#[derive(Clone)]
 pub struct Computer {
     registers: [u64; 3],
     program: Vec<u64>,
@@ -49,6 +50,15 @@ impl Computer {
             program,
             instruction_pointer: 0,
             output: Vec::new(),
+        }
+    }
+
+    pub fn clone_with_register_a(&self, register_a: u64) -> Self {
+        Self {
+            registers: [register_a, self.registers[1], self.registers[2]],
+            program: self.program.clone(),
+            instruction_pointer: self.instruction_pointer,
+            output: self.output.clone(),
         }
     }
 
@@ -74,10 +84,15 @@ impl Computer {
             self.program.get((self.instruction_pointer + 1) as usize),
         ) {
             let instruction = Instruction::parse(opcode, operand);
+
             self.run_instruction(instruction);
         }
 
         self.output.clone()
+    }
+
+    pub fn get_program(&self) -> Vec<u64> {
+        self.program.clone()
     }
 
     fn get_combo_value(&self, operand: u64) -> u64 {
