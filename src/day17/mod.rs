@@ -1,10 +1,10 @@
+mod computer;
+
 use std::collections::HashSet;
 
 use computer::Computer;
 
 use crate::Puzzle;
-
-mod computer;
 
 const INPUT: &str = include_str!("input.txt");
 
