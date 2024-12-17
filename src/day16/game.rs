@@ -98,7 +98,7 @@ impl Game {
             prev_node,
         }) = queue.pop()
         {
-            let (min_score, set) = back_track
+            let (min_score, prev_nodes) = back_track
                 .entry(node)
                 .or_insert_with(|| (score, HashSet::new()));
 
@@ -107,7 +107,7 @@ impl Game {
             }
 
             if let Some(prev_node) = prev_node {
-                set.insert(prev_node);
+                prev_nodes.insert(prev_node);
             }
 
             for (move_score, move_node) in node.moves() {
