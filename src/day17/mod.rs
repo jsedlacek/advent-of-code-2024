@@ -63,7 +63,7 @@ impl Part2 {
         starting_index: u64,
     ) -> Vec<u64> {
         let mut res = Vec::new();
-        for register_a in starting_index..(starting_index + 64) {
+        for register_a in starting_index..(starting_index + 8) {
             let mut computer = computer.clone_with_register_a(register_a as u64);
             let output = computer.run();
 
