@@ -129,6 +129,22 @@ pub fn iter_2d<T>(
     })
 }
 
+pub fn binary_search(min: usize, max: usize, f: impl Fn(usize) -> bool) -> usize {
+    let (mut l, mut r) = (min, max);
+
+    while l < r {
+        let mid = (l + r) / 2;
+
+        if f(mid) {
+            r = mid;
+        } else {
+            l = mid + 1;
+        }
+    }
+
+    return l - 1;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

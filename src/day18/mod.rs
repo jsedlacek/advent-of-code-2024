@@ -12,7 +12,10 @@ use nom::{
     IResult,
 };
 
-use crate::{util::Point, Puzzle};
+use crate::{
+    util::{binary_search, Point},
+    Puzzle,
+};
 
 const INPUT: &str = include_str!("input.txt");
 
@@ -54,23 +57,15 @@ fn part2(input: &str, size: Point) -> Result<Point, Box<dyn std::error::Error>> 
     let start = Point(0, 0);
     let end = size - Point(1, 1);
 
-    let (mut l, mut r) = (0, points.len());
-
-    while l < r {
-        let mid = (l + r) / 2;
-
-        let corrupted_points = points[..mid].iter().copied().collect::<HashSet<_>>();
+    let res = binary_search(0, points.len(), |index| {
+        let corrupted_points = points[..index].iter().copied().collect::<HashSet<_>>();
 
         let game = Game::new(corrupted_points, size);
 
-        if game.find_path(start, end).is_some() {
-            l = mid + 1;
-        } else {
-            r = mid;
-        }
-    }
+        !game.find_path(start, end).is_some()
+    });
 
-    return Ok(points[l - 1]);
+    return Ok(points[res]);
 }
 
 pub struct Part2;
