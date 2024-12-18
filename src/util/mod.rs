@@ -1,4 +1,7 @@
-use std::ops::{Add, AddAssign, Sub, SubAssign};
+use std::{
+    fmt::Display,
+    ops::{Add, AddAssign, Sub, SubAssign},
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub struct Point(pub i64, pub i64);
@@ -58,6 +61,12 @@ impl Add<Direction> for Point {
 impl AddAssign<Direction> for Point {
     fn add_assign(&mut self, rhs: Direction) {
         *self = *self + rhs;
+    }
+}
+
+impl Display for Point {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{},{}", self.0, self.1)
     }
 }
 
