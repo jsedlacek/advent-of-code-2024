@@ -54,18 +54,23 @@ fn part2(input: &str, size: Point) -> Result<Point, Box<dyn std::error::Error>> 
     let start = Point(0, 0);
     let end = size - Point(1, 1);
 
-    let mut corrupted_points = HashSet::new();
+    let (mut l, mut r) = (0, points.len());
 
-    for &point in points.iter() {
-        corrupted_points.insert(point);
-        let game = Game::new(corrupted_points.clone(), size);
+    while l < r {
+        let mid = (l + r) / 2;
 
-        if !game.find_path(start, end).is_some() {
-            return Ok(point);
+        let corrupted_points = points[..mid].iter().copied().collect::<HashSet<_>>();
+
+        let game = Game::new(corrupted_points, size);
+
+        if game.find_path(start, end).is_some() {
+            l = mid + 1;
+        } else {
+            r = mid;
         }
     }
 
-    Err("Point not found")?
+    return Ok(points[l - 1]);
 }
 
 pub struct Part2;
