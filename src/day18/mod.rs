@@ -62,7 +62,7 @@ fn part2(input: &str, size: Point) -> Result<Point, Box<dyn std::error::Error>> 
 
         let game = Game::new(corrupted_points, size);
 
-        !game.find_path(start, end).is_some()
+        game.find_path(start, end).is_none()
     });
 
     return Ok(points[res]);
