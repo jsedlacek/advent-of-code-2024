@@ -16,7 +16,7 @@ impl Game {
     }
 
     pub fn find_path(&self, start: Point, end: Point) -> Option<u64> {
-        bfs(start, end, |point| {
+        if let Some((len, _)) = bfs(start, end, |point| {
             Direction::all()
                 .map(move |direction| point + direction)
                 .filter(|point| {
@@ -32,6 +32,10 @@ impl Game {
                         true
                     }
                 })
-        })
+        }) {
+            return Some(len);
+        }
+
+        None
     }
 }

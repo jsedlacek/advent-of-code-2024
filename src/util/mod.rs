@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashSet, VecDeque},
+    collections::{HashMap, HashSet, VecDeque},
     fmt::Display,
     ops::{Add, AddAssign, Sub, SubAssign},
 };
@@ -154,17 +154,25 @@ where
     return l - T::from(1u8);
 }
 
-pub fn bfs<T, I>(start: T, end: T, get_neighbors: impl Fn(T) -> I) -> Option<u64>
+pub fn bfs<T, I>(start: T, end: T, get_neighbors: impl Fn(T) -> I) -> Option<(u64, Vec<T>)>
 where
     T: Eq + std::hash::Hash + Copy,
     I: Iterator<Item = T>,
 {
     let mut queue = VecDeque::from([(start, 0)]);
-    let mut visited = HashSet::new();
+    let mut visited = HashSet::from([start]); // Initialize visited with start point
+    let mut came_from = HashMap::new();
 
     while let Some((point, distance)) = queue.pop_front() {
         if point == end {
-            return Some(distance);
+            let mut path = vec![point];
+            let mut current = point;
+            while let Some(&prev) = came_from.get(&current) {
+                path.push(prev);
+                current = prev;
+            }
+            path.reverse();
+            return Some((distance, path));
         }
 
         for neighbor in get_neighbors(point) {
@@ -174,6 +182,7 @@ where
 
             queue.push_back((neighbor, distance + 1));
             visited.insert(neighbor);
+            came_from.insert(neighbor, point);
         }
     }
 
