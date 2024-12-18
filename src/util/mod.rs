@@ -1,4 +1,5 @@
 use std::{
+    collections::{HashSet, VecDeque},
     fmt::Display,
     ops::{Add, AddAssign, Sub, SubAssign},
 };
@@ -151,6 +152,32 @@ where
     }
 
     return l - T::from(1u8);
+}
+
+pub fn bfs<T, I>(start: T, end: T, get_neighbors: impl Fn(T) -> I) -> Option<u64>
+where
+    T: Eq + std::hash::Hash + Copy,
+    I: Iterator<Item = T>,
+{
+    let mut queue = VecDeque::from([(start, 0)]);
+    let mut visited = HashSet::new();
+
+    while let Some((point, distance)) = queue.pop_front() {
+        if point == end {
+            return Some(distance);
+        }
+
+        for neighbor in get_neighbors(point) {
+            if visited.contains(&neighbor) {
+                continue;
+            }
+
+            queue.push_back((neighbor, distance + 1));
+            visited.insert(neighbor);
+        }
+    }
+
+    None
 }
 
 #[cfg(test)]
