@@ -129,20 +129,28 @@ pub fn iter_2d<T>(
     })
 }
 
-pub fn binary_search(min: usize, max: usize, f: impl Fn(usize) -> bool) -> usize {
+pub fn binary_search<T>(min: T, max: T, f: impl Fn(T) -> bool) -> T
+where
+    T: Copy
+        + PartialOrd
+        + std::ops::Add<Output = T>
+        + std::ops::Sub<Output = T>
+        + std::ops::Div<Output = T>
+        + From<u8>,
+{
     let (mut l, mut r) = (min, max);
 
     while l < r {
-        let mid = (l + r) / 2;
+        let mid = (l + r) / T::from(2u8);
 
         if f(mid) {
             r = mid;
         } else {
-            l = mid + 1;
+            l = mid + T::from(1u8);
         }
     }
 
-    return l - 1;
+    return l - T::from(1u8);
 }
 
 #[cfg(test)]
