@@ -1,20 +1,30 @@
 use std::collections::HashMap;
 
-pub struct Game<'a> {
-    towels: &'a [&'a str],
+pub struct Game {
+    towels: Vec<String>,
     cache: HashMap<String, u64>,
 }
 
-impl<'a> Game<'a> {
-    pub fn new(towels: &'a [&'a str]) -> Self {
+impl Game {
+    pub fn new(towels: &[&str]) -> Self {
         Self {
-            towels,
+            towels: towels.iter().map(|&s| s.to_string()).collect(),
             cache: HashMap::new(),
         }
     }
 
+    // design_count and design_count_logic are separated to split the ownership of cache
+    // from the ownership of towels.
     pub fn design_count(&mut self, pattern: &str) -> u64 {
-        if let Some(&result) = self.cache.get(pattern) {
+        Self::design_count_logic(&self.towels, pattern, &mut self.cache)
+    }
+
+    fn design_count_logic(
+        towels: &[String],
+        pattern: &str,
+        cache: &mut HashMap<String, u64>,
+    ) -> u64 {
+        if let Some(&result) = cache.get(pattern) {
             return result;
         }
 
@@ -22,14 +32,13 @@ impl<'a> Game<'a> {
             return 1;
         }
 
-        let count = self
-            .towels
+        let count = towels
             .iter()
-            .filter(|&&towel| pattern.starts_with(towel))
-            .map(|&towel| self.design_count(&pattern[towel.len()..]))
+            .filter(|&towel| pattern.starts_with(towel))
+            .map(|towel| Self::design_count_logic(towels, &pattern[towel.len()..], cache))
             .sum();
 
-        self.cache.insert(pattern.to_string(), count);
+        cache.insert(pattern.to_string(), count);
 
         count
     }
