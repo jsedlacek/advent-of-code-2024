@@ -41,8 +41,10 @@ impl Game {
                 })
                 .filter_map(|(start, start_pos, end, end_pos)| {
                     let cheat_distance = end_pos.distance(start_pos);
+                    let original_distance = (end - start) as u64;
+
                     if cheat_distance <= max_cheat_len {
-                        Some((end - start) as u64 - cheat_distance)
+                        Some(original_distance - cheat_distance)
                     } else {
                         None
                     }
