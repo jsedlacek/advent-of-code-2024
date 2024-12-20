@@ -27,29 +27,30 @@ impl Game {
 
     pub fn find_cheat_speedups(&self, max_cheat_len: u64) -> HashMap<u64, u64> {
         let mut speedups = HashMap::new();
-        let (_, original_path) = self.find_shortest_path().expect("No path found");
 
-        original_path
-            .iter()
-            .enumerate()
-            .flat_map(|(start, &start_pos)| {
-                original_path
-                    .iter()
-                    .enumerate()
-                    .skip(start + 2)
-                    .map(move |(end, &end_pos)| (start, start_pos, end, end_pos))
-            })
-            .filter_map(|(start, start_pos, end, end_pos)| {
-                let cheat_distance = end_pos.distance(start_pos);
-                if cheat_distance <= max_cheat_len {
-                    Some((end - start) as u64 - cheat_distance)
-                } else {
-                    None
-                }
-            })
-            .for_each(|speedup| {
-                *speedups.entry(speedup).or_insert(0) += 1;
-            });
+        if let Some((_, original_path)) = self.find_shortest_path() {
+            original_path
+                .iter()
+                .enumerate()
+                .flat_map(|(start, &start_pos)| {
+                    original_path
+                        .iter()
+                        .enumerate()
+                        .skip(start + 2)
+                        .map(move |(end, &end_pos)| (start, start_pos, end, end_pos))
+                })
+                .filter_map(|(start, start_pos, end, end_pos)| {
+                    let cheat_distance = end_pos.distance(start_pos);
+                    if cheat_distance <= max_cheat_len {
+                        Some((end - start) as u64 - cheat_distance)
+                    } else {
+                        None
+                    }
+                })
+                .for_each(|speedup| {
+                    *speedups.entry(speedup).or_insert(0) += 1;
+                });
+        }
 
         speedups
     }
