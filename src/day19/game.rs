@@ -1,7 +1,5 @@
-use std::collections::HashSet;
-
 pub struct Game {
-    towels: HashSet<String>,
+    towels: Vec<String>,
 }
 
 impl Game {
@@ -16,10 +14,9 @@ impl Game {
         counts[0] = 1;
 
         for i in 0..pattern.len() {
-            for j in (i + 1)..=pattern.len() {
-                let sub_pattern = &pattern[i..j];
-                if self.towels.contains(sub_pattern) {
-                    counts[j] += counts[i];
+            for towel in &self.towels {
+                if pattern[i..].starts_with(towel) {
+                    counts[i + towel.len()] += counts[i];
                 }
             }
         }

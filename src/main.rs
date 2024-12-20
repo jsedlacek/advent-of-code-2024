@@ -126,7 +126,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         print!("Day {day} part {part} = {}", result);
 
-        if elapsed.as_millis() > 100 {
+        if elapsed.as_millis() > 1 {
             let ms = elapsed.as_millis();
             print!(" [{ms}ms]");
         }
