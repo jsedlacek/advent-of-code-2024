@@ -1,46 +1,30 @@
-use std::collections::HashMap;
+use std::collections::HashSet;
 
 pub struct Game {
-    towels: Vec<String>,
-    cache: HashMap<String, u64>,
+    towels: HashSet<String>,
 }
 
 impl Game {
     pub fn new(towels: &[&str]) -> Self {
         Self {
             towels: towels.iter().map(|&s| s.to_string()).collect(),
-            cache: HashMap::new(),
         }
     }
 
-    // design_count and design_count_logic are separated to split the ownership of cache
-    // from the ownership of towels.
-    pub fn design_count(&mut self, pattern: &str) -> u64 {
-        Self::design_count_logic(&self.towels, pattern, &mut self.cache)
-    }
+    pub fn design_count(&self, pattern: &str) -> u64 {
+        let mut counts = vec![0u64; pattern.len() + 1];
+        counts[0] = 1;
 
-    fn design_count_logic(
-        towels: &[String],
-        pattern: &str,
-        cache: &mut HashMap<String, u64>,
-    ) -> u64 {
-        if let Some(&result) = cache.get(pattern) {
-            return result;
+        for i in 0..pattern.len() {
+            for j in (i + 1)..=pattern.len() {
+                let sub_pattern = &pattern[i..j];
+                if self.towels.contains(sub_pattern) {
+                    counts[j] += counts[i];
+                }
+            }
         }
 
-        if pattern.is_empty() {
-            return 1;
-        }
-
-        let count = towels
-            .iter()
-            .filter(|&towel| pattern.starts_with(towel))
-            .map(|towel| Self::design_count_logic(towels, &pattern[towel.len()..], cache))
-            .sum();
-
-        cache.insert(pattern.to_string(), count);
-
-        count
+        counts[pattern.len()]
     }
 }
 
@@ -50,7 +34,7 @@ mod tests {
 
     #[test]
     fn design_count_test() {
-        let mut game = Game::new(&["r", "wr", "b", "g", "bwu", "rb", "gb", "br"]);
+        let game = Game::new(&["r", "wr", "b", "g", "bwu", "rb", "gb", "br"]);
 
         assert_eq!(game.design_count("brwrr"), 2);
 

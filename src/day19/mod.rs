@@ -14,7 +14,7 @@ impl Part1 {
     fn solve_input(input: &str) -> Result<u64, Box<dyn std::error::Error>> {
         let (_, (towels, patterns)) = parse_input(input).map_err(|e| e.to_owned())?;
 
-        let mut game = Game::new(&towels);
+        let game = Game::new(&towels);
 
         Ok(patterns
             .iter()
@@ -34,7 +34,7 @@ pub struct Part2;
 impl Part2 {
     fn solve_input(input: &str) -> Result<u64, Box<dyn std::error::Error>> {
         let (_, (towels, patterns)) = parse_input(input).map_err(|e| e.to_owned())?;
-        let mut game = Game::new(&towels);
+        let game = Game::new(&towels);
 
         Ok(patterns.iter().map(|p| game.design_count(&p)).sum::<u64>())
     }
