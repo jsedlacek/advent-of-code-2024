@@ -1,11 +1,23 @@
+use std::collections::{HashMap, HashSet};
+
 pub struct Game {
-    towels: Vec<String>,
+    towels_by_length: HashMap<usize, HashSet<String>>,
 }
 
 impl Game {
     pub fn new(towels: &[&str]) -> Self {
+        let mut towels_by_len: HashMap<usize, HashSet<String>> = HashMap::new();
+
+        for towel in towels {
+            let length = towel.len();
+            towels_by_len
+                .entry(length)
+                .or_default()
+                .insert(towel.to_string());
+        }
+
         Self {
-            towels: towels.iter().map(|&s| s.to_string()).collect(),
+            towels_by_length: towels_by_len,
         }
     }
 
@@ -14,9 +26,11 @@ impl Game {
         counts[0] = 1;
 
         for i in 0..pattern.len() {
-            for towel in &self.towels {
-                if pattern[i..].starts_with(towel) {
-                    counts[i + towel.len()] += counts[i];
+            for (&length, towels) in self.towels_by_length.iter() {
+                if let Some(sub_pattern) = pattern.get(i..i + length) {
+                    if towels.contains(sub_pattern) {
+                        counts[i + length] += counts[i];
+                    }
                 }
             }
         }
