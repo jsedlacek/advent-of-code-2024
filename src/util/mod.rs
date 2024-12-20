@@ -14,6 +14,13 @@ impl Point {
 
         Point(x.rem_euclid(max_x), y.rem_euclid(max_y))
     }
+
+    pub fn distance(self, other: Point) -> u64 {
+        let Point(x1, y1) = self;
+        let Point(x2, y2) = other;
+
+        ((x1 - x2).abs() + (y1 - y2).abs()) as u64
+    }
 }
 
 impl Add for Point {

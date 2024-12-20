@@ -25,41 +25,24 @@ impl Game {
         })
     }
 
-    pub fn find_cheat_speedups(&self) -> HashMap<u64, u64> {
+    pub fn find_cheat_speedups(&self, max_cheat_len: u64) -> HashMap<u64, u64> {
         let mut paths: HashMap<u64, u64> = HashMap::new();
 
         let (_, original_path) = self.find_shortest_path().unwrap();
 
-        let original_set: HashSet<Point> = HashSet::from_iter(original_path.iter().copied());
+        for (cheat_start, &cheat_start_pos) in original_path.iter().enumerate() {
+            for (cheat_end, &cheat_end_pos) in
+                original_path.iter().enumerate().skip(cheat_start + 2)
+            {
+                let cheat_distance = cheat_end_pos.distance(cheat_start_pos);
 
-        for (cheat_start, &pos) in original_path.iter().enumerate() {
-            for direction in Direction::all() {
-                let cheat_pos = pos + direction;
-                if !self.walls.contains(&cheat_pos) {
+                if cheat_distance > max_cheat_len {
                     continue;
                 }
 
-                for direction in Direction::all() {
-                    let path_pos = cheat_pos + direction;
-                    if !original_set.contains(&path_pos) {
-                        continue;
-                    }
+                let speedup = (cheat_end - cheat_start) as u64 - cheat_distance;
 
-                    let cheat_end = original_path
-                        .iter()
-                        .enumerate()
-                        .find(|(_, &p)| p == path_pos)
-                        .unwrap()
-                        .0;
-
-                    if cheat_start >= cheat_end {
-                        continue;
-                    }
-
-                    let speedup = (cheat_end - cheat_start - 2) as u64;
-
-                    *paths.entry(speedup).or_insert(0) += 1;
-                }
+                *paths.entry(speedup).or_insert(0) += 1;
             }
         }
 
@@ -82,10 +65,10 @@ mod tests {
     }
 
     #[test]
-    fn test_find_paths() {
+    fn test_find_cheat_speedups() {
         let (_, game) = parse_input(TEST_INPUT).unwrap();
 
-        let speedups = game.find_cheat_speedups();
+        let speedups = game.find_cheat_speedups(2);
 
         assert_eq!(speedups.get(&2), Some(&14));
         assert_eq!(speedups.get(&4), Some(&14));

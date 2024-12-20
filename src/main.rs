@@ -103,6 +103,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     days.insert((19, 2), Box::new(day19::Part2));
 
     days.insert((20, 1), Box::new(day20::Part1));
+    days.insert((20, 2), Box::new(day20::Part2));
 
     let mut puzzles = days
         .iter()
