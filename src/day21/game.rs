@@ -36,22 +36,10 @@ impl Game {
             return *res;
         }
 
-        let paths = self.generate_possible_paths(current_pos, target_pos);
+        let paths = self.generate_possible_paths(current_pos, target_pos, level);
 
         let res = paths
             .into_iter()
-            .filter(|path| {
-                let mut pos = current_pos;
-                for dir in path.clone() {
-                    pos += dir;
-
-                    if !Self::is_position_valid(pos, level) {
-                        return false;
-                    }
-                }
-
-                true
-            })
             .map(|path| {
                 let points = path
                     .map(|d| Key::Direction(d))
@@ -96,6 +84,7 @@ impl Game {
         &self,
         current_pos: Point,
         target_pos: Point,
+        level: u64,
     ) -> impl Iterator<Item = impl Iterator<Item = Direction> + Clone> {
         let diff = target_pos - current_pos;
 
@@ -123,7 +112,18 @@ impl Game {
         let path_a = x_directions.clone().chain(y_directions.clone());
         let path_b = y_directions.chain(x_directions);
 
-        [path_a, path_b].into_iter()
+        [path_a, path_b].into_iter().filter(move |path| {
+            let mut pos = current_pos;
+            for dir in path.clone() {
+                pos += dir;
+
+                if !Self::is_position_valid(pos, level) {
+                    return false;
+                }
+            }
+
+            true
+        })
     }
 }
 
