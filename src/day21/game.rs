@@ -1,4 +1,4 @@
-use std::{collections::HashMap, iter::once};
+use std::collections::HashMap;
 
 use crate::util::{Direction, Point};
 
@@ -16,9 +16,9 @@ impl Game {
     }
 
     pub fn get_sequence_len(&mut self, code: &[Digit]) -> u64 {
-        let points = code.iter().map(|d| d.get_position()).collect::<Vec<_>>();
+        let points = code.iter().map(|d| d.get_position());
 
-        self.click_buttons(&points, 0)
+        self.click_buttons(points, 0)
     }
 
     pub fn get_numeric_part(digits: &[Digit]) -> u64 {
@@ -47,35 +47,35 @@ impl Game {
 
         let diff = target_pos - current_pos;
 
-        let x_directions = if diff.0 < 0 {
-            vec![Direction::Left; diff.0.abs() as usize]
-        } else if diff.0 > 0 {
-            vec![Direction::Right; diff.0.abs() as usize]
-        } else {
-            vec![]
-        };
+        let (x_direction, x_len) = (
+            if diff.0 < 0 {
+                Direction::Left
+            } else {
+                Direction::Right
+            },
+            diff.0.abs(),
+        );
 
-        let y_directions = if diff.1 < 0 {
-            vec![Direction::Up; diff.1.abs() as usize]
-        } else if diff.1 > 0 {
-            vec![Direction::Down; diff.1.abs() as usize]
-        } else {
-            vec![]
-        };
+        let (y_direction, y_len) = (
+            if diff.1 < 0 {
+                Direction::Up
+            } else {
+                Direction::Down
+            },
+            diff.1.abs(),
+        );
 
-        let mut path_a = Vec::new();
-        path_a.extend(&x_directions);
-        path_a.extend(&y_directions);
+        let x_directions = std::iter::repeat(x_direction).take(x_len as usize);
+        let y_directions = std::iter::repeat(y_direction).take(y_len as usize);
 
-        let mut path_b = Vec::new();
-        path_b.extend(&y_directions);
-        path_b.extend(&x_directions);
+        let path_a = x_directions.clone().chain(y_directions.clone());
+        let path_b = y_directions.chain(x_directions);
 
         let res = [path_a, path_b]
             .into_iter()
             .filter(|path| {
                 let mut pos = current_pos;
-                for &dir in path {
+                for dir in path.clone() {
                     pos += dir;
 
                     if !Self::is_position_valid(pos, level) {
@@ -87,13 +87,11 @@ impl Game {
             })
             .map(|path| {
                 let points = path
-                    .iter()
-                    .map(|&d| Key::Direction(d))
-                    .chain(once(Key::Activate))
-                    .map(|k| k.get_position())
-                    .collect::<Vec<_>>();
+                    .map(|d| Key::Direction(d))
+                    .chain(std::iter::once(Key::Activate))
+                    .map(|k| k.get_position());
 
-                self.click_buttons(&points, level + 1)
+                self.click_buttons(points, level + 1)
             })
             .min()
             .unwrap();
@@ -103,15 +101,15 @@ impl Game {
         res
     }
 
-    fn click_buttons(&mut self, path: &[Point], level: u64) -> u64 {
+    fn click_buttons(&mut self, path: impl IntoIterator<Item = Point>, level: u64) -> u64 {
         if level == self.max_level {
-            return path.len() as u64;
+            return path.into_iter().count() as u64;
         }
 
         let mut current_pos = Point(0, 0);
 
         let mut result = 0;
-        for &p in path {
+        for p in path {
             result += self.click_button(current_pos, p, level);
             current_pos = p;
         }
