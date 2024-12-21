@@ -112,16 +112,12 @@ impl Game {
         let path_b = y_directions.chain(x_directions);
 
         [path_a, path_b].into_iter().filter(move |path| {
-            let mut pos = current_pos;
-            for dir in path.clone() {
-                pos += dir;
-
-                if !Self::is_position_valid(pos, level) {
-                    return false;
-                }
-            }
-
-            true
+            path.clone()
+                .scan(current_pos, |pos, dir| {
+                    *pos += dir;
+                    Some(*pos)
+                })
+                .all(|pos| Self::is_position_valid(pos, level))
         })
     }
 }
