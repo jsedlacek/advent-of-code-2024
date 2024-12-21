@@ -25,17 +25,8 @@ impl Game {
         digits
             .iter()
             .filter_map(|d| match d {
-                Digit::Zero => Some(0),
-                Digit::One => Some(1),
-                Digit::Two => Some(2),
-                Digit::Three => Some(3),
-                Digit::Four => Some(4),
-                Digit::Five => Some(5),
-                Digit::Six => Some(6),
-                Digit::Seven => Some(7),
-                Digit::Eight => Some(8),
-                Digit::Nine => Some(9),
-                _ => None,
+                Digit::Number(n) => Some(*n as u64),
+                Digit::Activate => None,
             })
             .fold(0, |acc, d| acc * 10 + d)
     }
@@ -128,33 +119,15 @@ impl Game {
 
 #[derive(Hash, PartialEq, Eq, Debug, Clone, Copy)]
 pub enum Digit {
-    Zero,
-    One,
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
-    Seven,
-    Eight,
-    Nine,
-    A,
+    Number(u8),
+    Activate,
 }
 
 impl Digit {
     pub fn from_char(c: char) -> Option<Self> {
         match c {
-            '0' => Some(Self::Zero),
-            '1' => Some(Self::One),
-            '2' => Some(Self::Two),
-            '3' => Some(Self::Three),
-            '4' => Some(Self::Four),
-            '5' => Some(Self::Five),
-            '6' => Some(Self::Six),
-            '7' => Some(Self::Seven),
-            '8' => Some(Self::Eight),
-            '9' => Some(Self::Nine),
-            'A' => Some(Self::A),
+            '0'..='9' => c.to_digit(10).map(|d| Self::Number(d as u8)),
+            'A' => Some(Self::Activate),
             _ => None,
         }
     }
@@ -168,7 +141,7 @@ impl Digit {
             .unwrap()
     }
 
-    fn get_by_pos(pos: Point) -> Option<Digit> {
+    fn get_by_pos(pos: Point) -> Option<Self> {
         let digit_positions = Self::get_digit_positions();
         digit_positions
             .into_iter()
@@ -176,19 +149,19 @@ impl Digit {
             .map(|(_, d)| d)
     }
 
-    fn get_digit_positions() -> [(Point, Digit); 11] {
+    fn get_digit_positions() -> [(Point, Self); 11] {
         [
-            (Point(-2, -3), Digit::Seven),
-            (Point(-1, -3), Digit::Eight),
-            (Point(0, -3), Digit::Nine),
-            (Point(-2, -2), Digit::Four),
-            (Point(-1, -2), Digit::Five),
-            (Point(0, -2), Digit::Six),
-            (Point(-2, -1), Digit::One),
-            (Point(-1, -1), Digit::Two),
-            (Point(0, -1), Digit::Three),
-            (Point(-1, 0), Digit::Zero),
-            (Point(0, 0), Digit::A),
+            (Point(-2, -3), Self::Number(7)),
+            (Point(-1, -3), Self::Number(8)),
+            (Point(0, -3), Self::Number(9)),
+            (Point(-2, -2), Self::Number(4)),
+            (Point(-1, -2), Self::Number(5)),
+            (Point(0, -2), Self::Number(6)),
+            (Point(-2, -1), Self::Number(1)),
+            (Point(-1, -1), Self::Number(2)),
+            (Point(0, -1), Self::Number(3)),
+            (Point(-1, 0), Self::Number(0)),
+            (Point(0, 0), Self::Activate),
         ]
     }
 }
@@ -232,7 +205,12 @@ mod tests {
 
     #[test]
     fn test_click_buttons() {
-        let code = [Digit::Zero, Digit::Two, Digit::Nine, Digit::A];
+        let code = [
+            Digit::Number(0),
+            Digit::Number(2),
+            Digit::Number(9),
+            Digit::Activate,
+        ];
 
         let mut game = Game::new(0);
         assert_eq!(game.get_sequence_len(&code), 4);
@@ -250,7 +228,12 @@ mod tests {
     #[test]
     fn test_get_numeric_part() {
         assert_eq!(
-            Game::get_numeric_part(&[Digit::Zero, Digit::Two, Digit::Nine, Digit::A]),
+            Game::get_numeric_part(&[
+                Digit::Number(0),
+                Digit::Number(2),
+                Digit::Number(9),
+                Digit::Activate
+            ]),
             29
         );
     }
