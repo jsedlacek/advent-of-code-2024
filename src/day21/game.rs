@@ -143,8 +143,7 @@ impl Digit {
     }
 
     fn get_position(&self) -> Point {
-        let digit_positions = Self::get_digit_positions();
-        digit_positions
+        Self::DIGIT_POSITIONS
             .iter()
             .find(|(_, d)| d == self)
             .map(|(p, _)| *p)
@@ -152,28 +151,25 @@ impl Digit {
     }
 
     fn get_by_pos(pos: Point) -> Option<Self> {
-        let digit_positions = Self::get_digit_positions();
-        digit_positions
+        Self::DIGIT_POSITIONS
             .into_iter()
             .find(|(p, _)| *p == pos)
             .map(|(_, d)| d)
     }
 
-    fn get_digit_positions() -> [(Point, Self); 11] {
-        [
-            (Point(-2, -3), Self::Number(7)),
-            (Point(-1, -3), Self::Number(8)),
-            (Point(0, -3), Self::Number(9)),
-            (Point(-2, -2), Self::Number(4)),
-            (Point(-1, -2), Self::Number(5)),
-            (Point(0, -2), Self::Number(6)),
-            (Point(-2, -1), Self::Number(1)),
-            (Point(-1, -1), Self::Number(2)),
-            (Point(0, -1), Self::Number(3)),
-            (Point(-1, 0), Self::Number(0)),
-            (Point(0, 0), Self::Activate),
-        ]
-    }
+    const DIGIT_POSITIONS: [(Point, Self); 11] = [
+        (Point(-2, -3), Self::Number(7)),
+        (Point(-1, -3), Self::Number(8)),
+        (Point(0, -3), Self::Number(9)),
+        (Point(-2, -2), Self::Number(4)),
+        (Point(-1, -2), Self::Number(5)),
+        (Point(0, -2), Self::Number(6)),
+        (Point(-2, -1), Self::Number(1)),
+        (Point(-1, -1), Self::Number(2)),
+        (Point(0, -1), Self::Number(3)),
+        (Point(-1, 0), Self::Number(0)),
+        (Point(0, 0), Self::Activate),
+    ];
 }
 
 #[derive(Hash, PartialEq, Eq, Debug, Clone, Copy)]
@@ -183,18 +179,16 @@ pub enum Key {
 }
 
 impl Key {
-    fn get_key_positions() -> [(Point, Key); 5] {
-        [
-            (Point(-1, 0), Key::Direction(Direction::Up)),
-            (Point(-1, 1), Key::Direction(Direction::Down)),
-            (Point(-2, 1), Key::Direction(Direction::Left)),
-            (Point(0, 1), Key::Direction(Direction::Right)),
-            (Point(0, 0), Key::Activate),
-        ]
-    }
+    const KEY_POSITIONS: [(Point, Key); 5] = [
+        (Point(-1, 0), Key::Direction(Direction::Up)),
+        (Point(-1, 1), Key::Direction(Direction::Down)),
+        (Point(-2, 1), Key::Direction(Direction::Left)),
+        (Point(0, 1), Key::Direction(Direction::Right)),
+        (Point(0, 0), Key::Activate),
+    ];
 
     fn get_position(&self) -> Point {
-        Self::get_key_positions()
+        Self::KEY_POSITIONS
             .iter()
             .find(|(_, k)| k == self)
             .map(|(p, _)| *p)
@@ -202,7 +196,7 @@ impl Key {
     }
 
     fn get_by_pos(pos: Point) -> Option<Key> {
-        Self::get_key_positions()
+        Self::KEY_POSITIONS
             .into_iter()
             .find(|(p, _)| *p == pos)
             .map(|(_, k)| k)
