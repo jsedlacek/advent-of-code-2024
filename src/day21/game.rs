@@ -32,17 +32,25 @@ impl Game {
     }
 
     fn click_button(&mut self, current_pos: Point, target_pos: Point, level: u64) -> u64 {
-        if level == self.max_level {
-            return 1;
-        }
-
         if let Some(res) = self.cache.get(&(current_pos, target_pos, level)) {
             return *res;
         }
 
+        let res = self.click_button_logic(current_pos, target_pos, level);
+
+        self.cache.insert((current_pos, target_pos, level), res);
+
+        res
+    }
+
+    fn click_button_logic(&mut self, current_pos: Point, target_pos: Point, level: u64) -> u64 {
+        if level == self.max_level {
+            return 1;
+        }
+
         let paths = self.generate_possible_paths(current_pos, target_pos, level);
 
-        let res = paths
+        paths
             .map(|path| {
                 let points = path
                     .map(|d| Key::Direction(d))
@@ -52,11 +60,7 @@ impl Game {
                 self.click_buttons(points, level + 1)
             })
             .min()
-            .unwrap();
-
-        self.cache.insert((current_pos, target_pos, level), res);
-
-        res
+            .unwrap()
     }
 
     fn click_buttons(&mut self, path: impl IntoIterator<Item = Point>, level: u64) -> u64 {
