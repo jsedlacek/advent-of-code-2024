@@ -51,14 +51,7 @@ impl Game {
         let paths = self.generate_possible_paths(current_pos, target_pos, level);
 
         paths
-            .map(|path| {
-                let points = path
-                    .map(|d| Key::Direction(d))
-                    .chain(std::iter::once(Key::Activate))
-                    .map(|k| k.get_position());
-
-                self.click_buttons(points, level + 1)
-            })
+            .map(|points| self.click_buttons(points, level + 1))
             .min()
             .unwrap()
     }
@@ -88,7 +81,7 @@ impl Game {
         current_pos: Point,
         target_pos: Point,
         level: u64,
-    ) -> impl Iterator<Item = impl Iterator<Item = Direction> + Clone> {
+    ) -> impl Iterator<Item = impl Iterator<Item = Point> + Clone> {
         let diff = target_pos - current_pos;
 
         let (x_direction, x_len) = (
@@ -115,14 +108,21 @@ impl Game {
         let path_a = x_directions.clone().chain(y_directions.clone());
         let path_b = y_directions.chain(x_directions);
 
-        [path_a, path_b].into_iter().filter(move |path| {
-            path.clone()
-                .scan(current_pos, |pos, dir| {
-                    *pos += dir;
-                    Some(*pos)
-                })
-                .all(|pos| Self::is_position_valid(pos, level))
-        })
+        [path_a, path_b]
+            .into_iter()
+            .filter(move |path| {
+                path.clone()
+                    .scan(current_pos, |pos, dir| {
+                        *pos += dir;
+                        Some(*pos)
+                    })
+                    .all(|pos| Self::is_position_valid(pos, level))
+            })
+            .map(|path| {
+                path.map(|d| Key::Direction(d))
+                    .chain(std::iter::once(Key::Activate))
+                    .map(|k| k.get_position())
+            })
     }
 }
 
