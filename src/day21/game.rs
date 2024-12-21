@@ -32,6 +32,10 @@ impl Game {
     }
 
     fn click_button(&mut self, current_pos: Point, target_pos: Point, level: u64) -> u64 {
+        if level == self.max_level {
+            return 1;
+        }
+
         if let Some(res) = self.cache.get(&(current_pos, target_pos, level)) {
             return *res;
         }
@@ -56,10 +60,6 @@ impl Game {
     }
 
     fn click_buttons(&mut self, path: impl IntoIterator<Item = Point>, level: u64) -> u64 {
-        if level == self.max_level {
-            return path.into_iter().count() as u64;
-        }
-
         const INITIAL_POS: Point = Point(0, 0);
 
         path.into_iter()
