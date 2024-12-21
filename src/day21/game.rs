@@ -39,7 +39,6 @@ impl Game {
         let paths = self.generate_possible_paths(current_pos, target_pos, level);
 
         let res = paths
-            .into_iter()
             .map(|path| {
                 let points = path
                     .map(|d| Key::Direction(d))
