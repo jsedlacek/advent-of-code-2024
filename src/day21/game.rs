@@ -36,33 +36,9 @@ impl Game {
             return *res;
         }
 
-        let diff = target_pos - current_pos;
+        let paths = self.generate_possible_paths(current_pos, target_pos);
 
-        let (x_direction, x_len) = (
-            if diff.0 < 0 {
-                Direction::Left
-            } else {
-                Direction::Right
-            },
-            diff.0.abs(),
-        );
-
-        let (y_direction, y_len) = (
-            if diff.1 < 0 {
-                Direction::Up
-            } else {
-                Direction::Down
-            },
-            diff.1.abs(),
-        );
-
-        let x_directions = std::iter::repeat(x_direction).take(x_len as usize);
-        let y_directions = std::iter::repeat(y_direction).take(y_len as usize);
-
-        let path_a = x_directions.clone().chain(y_directions.clone());
-        let path_b = y_directions.chain(x_directions);
-
-        let res = [path_a, path_b]
+        let res = paths
             .into_iter()
             .filter(|path| {
                 let mut pos = current_pos;
@@ -114,6 +90,40 @@ impl Game {
         } else {
             return Key::get_by_pos(pos).is_some();
         }
+    }
+
+    fn generate_possible_paths(
+        &self,
+        current_pos: Point,
+        target_pos: Point,
+    ) -> impl Iterator<Item = impl Iterator<Item = Direction> + Clone> {
+        let diff = target_pos - current_pos;
+
+        let (x_direction, x_len) = (
+            if diff.0 < 0 {
+                Direction::Left
+            } else {
+                Direction::Right
+            },
+            diff.0.abs(),
+        );
+
+        let (y_direction, y_len) = (
+            if diff.1 < 0 {
+                Direction::Up
+            } else {
+                Direction::Down
+            },
+            diff.1.abs(),
+        );
+
+        let x_directions = std::iter::repeat(x_direction).take(x_len as usize);
+        let y_directions = std::iter::repeat(y_direction).take(y_len as usize);
+
+        let path_a = x_directions.clone().chain(y_directions.clone());
+        let path_b = y_directions.chain(x_directions);
+
+        [path_a, path_b].into_iter()
     }
 }
 
