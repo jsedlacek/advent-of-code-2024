@@ -60,15 +60,15 @@ impl Game {
             return path.into_iter().count() as u64;
         }
 
-        let mut current_pos = Point(0, 0);
+        const INITIAL_POS: Point = Point(0, 0);
 
-        let mut result = 0;
-        for p in path {
-            result += self.click_button(current_pos, p, level);
-            current_pos = p;
-        }
-
-        result
+        path.into_iter()
+            .scan(INITIAL_POS, |current_pos, target_pos| {
+                let result = self.click_button(*current_pos, target_pos, level);
+                *current_pos = target_pos;
+                Some(result)
+            })
+            .sum()
     }
 
     fn is_position_valid(pos: Point, level: u64) -> bool {
