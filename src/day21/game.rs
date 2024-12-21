@@ -179,12 +179,12 @@ pub enum Key {
 }
 
 impl Key {
-    const KEY_POSITIONS: [(Point, Key); 5] = [
-        (Point(-1, 0), Key::Direction(Direction::Up)),
-        (Point(-1, 1), Key::Direction(Direction::Down)),
-        (Point(-2, 1), Key::Direction(Direction::Left)),
-        (Point(0, 1), Key::Direction(Direction::Right)),
-        (Point(0, 0), Key::Activate),
+    const KEY_POSITIONS: [(Point, Self); 5] = [
+        (Point(-1, 0), Self::Direction(Direction::Up)),
+        (Point(-1, 1), Self::Direction(Direction::Down)),
+        (Point(-2, 1), Self::Direction(Direction::Left)),
+        (Point(0, 1), Self::Direction(Direction::Right)),
+        (Point(0, 0), Self::Activate),
     ];
 
     fn get_position(&self) -> Point {
@@ -195,7 +195,7 @@ impl Key {
             .unwrap()
     }
 
-    fn get_by_pos(pos: Point) -> Option<Key> {
+    fn get_by_pos(pos: Point) -> Option<Self> {
         Self::KEY_POSITIONS
             .into_iter()
             .find(|(p, _)| *p == pos)
