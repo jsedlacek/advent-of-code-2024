@@ -7,7 +7,7 @@ pub fn part1(numbers: &[u64]) -> u64 {
         .sum()
 }
 
-pub fn part2(numbers: &[u64]) -> u64 {
+pub fn part2(numbers: &[u64]) -> Option<u64> {
     let mut map = HashMap::new();
 
     let sequences = numbers
@@ -41,9 +41,7 @@ pub fn part2(numbers: &[u64]) -> u64 {
         }
     }
 
-    let (_, result) = map.iter().max_by_key(|(_, number)| *number).unwrap();
-
-    *result
+    map.iter().map(|(_, number)| *number).max()
 }
 
 fn next_secret_number(secret_number: u64) -> u64 {
@@ -121,6 +119,6 @@ mod tests {
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(&[1, 2, 3, 2024]), 23);
+        assert_eq!(part2(&[1, 2, 3, 2024]).unwrap(), 23);
     }
 }
