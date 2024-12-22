@@ -1,18 +1,18 @@
 use std::collections::HashMap;
 
-pub fn part1(numbers: &[u64]) -> u64 {
+pub fn part1(numbers: impl IntoIterator<Item = u64>) -> u64 {
     numbers
-        .iter()
-        .flat_map(|&number| Sequence::new(number).skip(2000).take(1))
+        .into_iter()
+        .filter_map(|number| Sequence::new(number).skip(2000).next())
         .sum()
 }
 
-pub fn part2(numbers: &[u64]) -> Option<u64> {
+pub fn part2(numbers: impl IntoIterator<Item = u64>) -> Option<u64> {
     let mut map = HashMap::new();
 
     let sequences = numbers
-        .iter()
-        .map(|&number| {
+        .into_iter()
+        .map(|number| {
             let sequence = Sequence::new(number)
                 .map(|number| (number % 10) as u8)
                 .take(2001)
@@ -114,11 +114,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(&[1, 10, 100, 2024]), 37327623);
+        assert_eq!(part1([1, 10, 100, 2024]), 37327623);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(&[1, 2, 3, 2024]).unwrap(), 23);
+        assert_eq!(part2([1, 2, 3, 2024]).unwrap(), 23);
     }
 }

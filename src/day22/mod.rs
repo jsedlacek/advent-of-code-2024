@@ -19,7 +19,7 @@ impl Puzzle for Part1 {
     fn solve(&self) -> Result<String, Box<dyn std::error::Error>> {
         let (_, numbers) = parse_input(INPUT)?;
 
-        Ok(part1(&numbers).to_string())
+        Ok(part1(numbers).to_string())
     }
 }
 
@@ -29,7 +29,7 @@ impl Puzzle for Part2 {
     fn solve(&self) -> Result<String, Box<dyn std::error::Error>> {
         let (_, numbers) = parse_input(INPUT)?;
 
-        Ok(part2(&numbers)
+        Ok(part2(numbers)
             .ok_or("Part 2 solution not found")?
             .to_string())
     }
