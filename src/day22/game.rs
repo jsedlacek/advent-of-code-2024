@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 pub fn part1(numbers: impl IntoIterator<Item = u64>) -> u64 {
     numbers
@@ -28,14 +28,12 @@ pub fn part2(numbers: impl IntoIterator<Item = u64>) -> Option<u64> {
         .collect::<Vec<_>>();
 
     for (sequence, diffs) in sequences.iter() {
-        let mut number_map = HashMap::new();
+        let mut visited = HashSet::new();
 
         for (number, prev_diffs) in sequence.iter().skip(4).zip(diffs.windows(4)) {
-            number_map.entry(prev_diffs).or_insert(*number as u64);
-        }
-
-        for (&prefix, &price) in &number_map {
-            *map.entry(prefix).or_insert_with(|| 0) += price;
+            if visited.insert(prev_diffs) {
+                *map.entry(prev_diffs).or_insert_with(|| 0) += *number as u64;
+            }
         }
     }
 
