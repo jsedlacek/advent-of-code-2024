@@ -30,9 +30,9 @@ pub fn part2(numbers: impl IntoIterator<Item = u64>) -> Option<u64> {
     for (sequence, diffs) in sequences.iter() {
         let mut visited = HashSet::new();
 
-        for (number, prev_diffs) in sequence.iter().skip(4).zip(diffs.windows(4)) {
-            if visited.insert(prev_diffs) {
-                *map.entry(prev_diffs).or_insert_with(|| 0) += *number as u64;
+        for (number, pattern) in sequence.iter().skip(4).zip(diffs.windows(4)) {
+            if visited.insert(pattern) {
+                *map.entry(pattern).or_insert_with(|| 0) += *number as u64;
             }
         }
     }
