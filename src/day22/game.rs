@@ -19,9 +19,8 @@ pub fn part2(numbers: &[u64]) -> u64 {
                 .collect::<Vec<_>>();
 
             let diffs = sequence
-                .iter()
-                .zip(sequence.iter().skip(1))
-                .map(|(&a, &b)| b as i8 - a as i8)
+                .windows(2)
+                .map(|pair| pair[1] as i8 - pair[0] as i8)
                 .collect::<Vec<_>>();
 
             (sequence, diffs)
@@ -44,7 +43,7 @@ pub fn part2(numbers: &[u64]) -> u64 {
 
     let (_, result) = map.iter().max_by_key(|(_, number)| *number).unwrap();
 
-    *result as u64
+    *result
 }
 
 fn next_secret_number(secret_number: u64) -> u64 {
