@@ -41,7 +41,7 @@ pub fn part2(numbers: impl IntoIterator<Item = u64>) -> Option<u64> {
         }
     }
 
-    map.iter().map(|(_, number)| *number).max()
+    map.values().max().copied()
 }
 
 fn next_secret_number(secret_number: u64) -> u64 {
