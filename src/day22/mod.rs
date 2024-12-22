@@ -5,7 +5,7 @@ use nom::{
     character::complete::{multispace0, newline, u64},
     combinator::all_consuming,
     multi::separated_list1,
-    sequence::terminated,
+    sequence::delimited,
     IResult,
 };
 
@@ -32,5 +32,9 @@ impl Puzzle for Part2 {
 }
 
 fn parse_input(input: &str) -> IResult<&str, Vec<u64>> {
-    all_consuming(terminated(separated_list1(newline, u64), multispace0))(input)
+    all_consuming(delimited(
+        multispace0,
+        separated_list1(newline, u64),
+        multispace0,
+    ))(input)
 }
