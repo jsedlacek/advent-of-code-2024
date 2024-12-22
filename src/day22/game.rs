@@ -30,9 +30,7 @@ pub fn part2(numbers: impl IntoIterator<Item = u64>) -> Option<u64> {
     for (sequence, diffs) in sequences.iter() {
         let mut number_map = HashMap::new();
 
-        for (i, number) in sequence.iter().enumerate().skip(4) {
-            let prev_diffs = &diffs[i - 4..i];
-
+        for (number, prev_diffs) in sequence.iter().skip(4).zip(diffs.windows(4)) {
             number_map.entry(prev_diffs).or_insert(*number as u64);
         }
 
