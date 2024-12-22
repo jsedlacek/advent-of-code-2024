@@ -42,9 +42,9 @@ fn get_complexity(input: &str, max_level: u64) -> Result<u64, Box<dyn std::error
     let complexity = codes
         .into_iter()
         .map(|code| {
-            let sequence_len = game.get_sequence_len(&code);
+            let sequence_len = game.get_sequence_len(code.iter().copied());
 
-            let num = Game::get_numeric_part(&code);
+            let num = Game::get_numeric_part(code.into_iter());
 
             num * sequence_len as u64
         })

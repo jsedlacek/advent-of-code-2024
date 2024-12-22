@@ -15,17 +15,17 @@ impl Game {
         }
     }
 
-    pub fn get_sequence_len(&mut self, code: &[Digit]) -> u64 {
-        let points = code.iter().map(|d| d.get_position());
+    pub fn get_sequence_len(&mut self, code: impl IntoIterator<Item = Digit>) -> u64 {
+        let points = code.into_iter().map(|d| d.get_position());
 
         self.click_buttons(points, 0)
     }
 
-    pub fn get_numeric_part(digits: &[Digit]) -> u64 {
+    pub fn get_numeric_part(digits: impl IntoIterator<Item = Digit>) -> u64 {
         digits
-            .iter()
+            .into_iter()
             .filter_map(|d| match d {
-                Digit::Number(n) => Some(*n as u64),
+                Digit::Number(n) => Some(n as u64),
                 Digit::Activate => None,
             })
             .fold(0, |acc, d| acc * 10 + d)
@@ -216,27 +216,30 @@ mod tests {
         ];
 
         let mut game = Game::new(0);
-        assert_eq!(game.get_sequence_len(&code), 4);
+        assert_eq!(game.get_sequence_len(code.iter().copied()), 4);
 
         let mut game = Game::new(1);
-        assert_eq!(game.get_sequence_len(&code), 12);
+        assert_eq!(game.get_sequence_len(code.iter().copied()), 12);
 
         let mut game = Game::new(2);
-        assert_eq!(game.get_sequence_len(&code), 28);
+        assert_eq!(game.get_sequence_len(code.iter().copied()), 28);
 
         let mut game = Game::new(3);
-        assert_eq!(game.get_sequence_len(&code), 68);
+        assert_eq!(game.get_sequence_len(code.iter().copied()), 68);
     }
 
     #[test]
     fn test_get_numeric_part() {
         assert_eq!(
-            Game::get_numeric_part(&[
-                Digit::Number(0),
-                Digit::Number(2),
-                Digit::Number(9),
-                Digit::Activate
-            ]),
+            Game::get_numeric_part(
+                [
+                    Digit::Number(0),
+                    Digit::Number(2),
+                    Digit::Number(9),
+                    Digit::Activate
+                ]
+                .into_iter()
+            ),
             29
         );
     }
