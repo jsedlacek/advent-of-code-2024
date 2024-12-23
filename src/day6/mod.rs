@@ -20,12 +20,15 @@ pub struct Part1;
 
 impl Part1 {
     fn solve_input(input: &str) -> Result<u64, Box<dyn Error>> {
-        let mut game = Game::parse(input)?;
+        let (_, (walls, range, guard_pos)) = parse_input(input).map_err(|e| e.to_owned())?;
 
-        match game.play() {
-            GameResult::Done(len) => Ok(len),
-            GameResult::Loop => Err("Loop".into()),
-        }
+        let game = Game::new(walls, range);
+
+        Ok(game
+            .iter((guard_pos, Direction::Up))
+            .map(|(pos, _)| pos)
+            .collect::<HashSet<_>>()
+            .len() as u64)
     }
 }
 
@@ -39,28 +42,29 @@ pub struct Part2;
 
 impl Part2 {
     fn solve_input(input: &str) -> Result<u64, Box<dyn Error>> {
-        let mut game = Game::parse(input)?;
+        let (_, (walls, range, guard_pos)) = parse_input(input).map_err(|e| e.to_owned())?;
 
-        let mut count = 0;
+        let game = Game::new(walls, range);
 
-        loop {
-            if let Some((_, pos)) = game.next_move() {
-                if !game.visited_positions.contains(&pos) {
-                    let mut modified_game = game.clone();
-                    modified_game.walls.insert(pos);
+        let guard = (guard_pos, Direction::Up);
 
-                    if modified_game.play() == GameResult::Loop {
-                        count += 1;
-                    }
-                }
-            }
+        let positions = game.iter(guard).collect::<Vec<_>>();
 
-            if game.progress() == ProgressResult::End {
-                break;
-            }
-        }
+        let mut visited = HashSet::new();
 
-        Ok(count)
+        let obstructions = positions
+            .windows(2)
+            .map(|w| (w[0], w[1].0))
+            .filter(|&(_, pos)| visited.insert(pos));
+
+        Ok(obstructions
+            .filter(|(guard, obstruction_pos)| {
+                let mut modified_game = game.clone();
+                modified_game.walls.insert(*obstruction_pos);
+
+                modified_game.is_loop(*guard)
+            })
+            .count() as u64)
     }
 }
 
@@ -74,105 +78,42 @@ impl Puzzle for Part2 {
 struct Game {
     walls: HashSet<Point>,
     range: PointRange,
-    guard_pos: Point,
-    dir: Direction,
-    visited_positions: HashSet<Point>,
-    visited_state: HashSet<(Direction, Point)>,
-}
-
-#[derive(PartialEq, Eq)]
-enum ProgressResult {
-    Continue,
-    End,
-    Loop,
-}
-
-#[derive(PartialEq, Eq)]
-enum GameResult {
-    Done(u64),
-    Loop,
 }
 
 impl Game {
-    fn new(walls: HashSet<Point>, range: PointRange, guard_pos: Point) -> Game {
-        Game {
-            walls,
-            range,
-            guard_pos,
-            dir: Direction::Up,
-            visited_positions: HashSet::new(),
-            visited_state: HashSet::new(),
-        }
+    fn new(walls: HashSet<Point>, range: PointRange) -> Game {
+        Game { walls, range }
     }
 
-    fn parse(input: &str) -> Result<Game, Box<dyn std::error::Error>> {
-        let (_, tiles) = parse_input(input).map_err(|e| e.to_owned())?;
+    fn iter(&self, guard: (Point, Direction)) -> impl Iterator<Item = (Point, Direction)> + '_ {
+        let (mut pos, mut dir) = guard;
 
-        let guard_pos = iter_2d(&tiles)
-            .find(|(_, &tile)| tile == Tile::Guard)
-            .map(|(pos, _)| pos)
-            .unwrap();
-
-        let range = PointRange::new(
-            Point(0, 0),
-            Point(tiles[0].len() as i64, tiles.len() as i64),
-        );
-
-        let walls = iter_2d(&tiles)
-            .filter(|(_, &tile)| tile == Tile::Wall)
-            .map(|(pos, _)| pos)
-            .collect();
-
-        Ok(Game::new(walls, range, guard_pos))
-    }
-
-    fn next_move(&self) -> Option<(Direction, Point)> {
-        let mut dir = self.dir;
-        loop {
-            let new_pos = self.guard_pos + dir;
+        return std::iter::once(guard).chain(std::iter::from_fn(move || loop {
+            let new_pos = pos + dir;
 
             if !self.range.contains(new_pos) {
                 return None;
             }
 
             if !self.walls.contains(&new_pos) {
-                return Some((dir, new_pos));
+                pos = new_pos;
+                return Some((pos, dir));
             }
 
             dir = dir.rotate_clockwise();
-        }
+        }));
     }
 
-    fn progress(&mut self) -> ProgressResult {
-        if let Some((dir, pos)) = self.next_move() {
-            if self.visited_state.contains(&(dir, pos)) {
-                return ProgressResult::Loop;
-            }
+    fn is_loop(&self, guard: (Point, Direction)) -> bool {
+        let mut visited_state = HashSet::new();
 
-            self.guard_pos = pos;
-            self.dir = dir;
-
-            self.visited_positions.insert(pos);
-            self.visited_state.insert((dir, pos));
-
-            return ProgressResult::Continue;
-        }
-
-        return ProgressResult::End;
-    }
-
-    fn play(&mut self) -> GameResult {
-        self.visited_positions.insert(self.guard_pos);
-
-        loop {
-            match self.progress() {
-                ProgressResult::Continue => {}
-                ProgressResult::End => break,
-                ProgressResult::Loop => return GameResult::Loop,
+        for state in self.iter(guard) {
+            if !visited_state.insert(state) {
+                return true;
             }
         }
 
-        GameResult::Done(self.visited_positions.len() as u64)
+        false
     }
 }
 
@@ -183,8 +124,25 @@ enum Tile {
     Guard,
 }
 
-fn parse_input(input: &str) -> IResult<&str, Vec<Vec<Tile>>> {
-    separated_list1(newline, many1(parse_tile))(input)
+fn parse_input(input: &str) -> IResult<&str, (HashSet<Point>, PointRange, Point)> {
+    map(separated_list1(newline, many1(parse_tile)), |tiles| {
+        let walls = iter_2d(&tiles)
+            .filter(|(_, &tile)| tile == Tile::Wall)
+            .map(|(pos, _)| pos)
+            .collect();
+
+        let range = PointRange::new(
+            Point(0, 0),
+            Point(tiles[0].len() as i64, tiles.len() as i64),
+        );
+
+        let guard_pos = iter_2d(&tiles)
+            .find(|(_, &tile)| tile == Tile::Guard)
+            .map(|(pos, _)| pos)
+            .unwrap();
+
+        (walls, range, guard_pos)
+    })(input)
 }
 
 fn parse_tile(input: &str) -> IResult<&str, Tile> {
@@ -210,12 +168,8 @@ mod tests {
 
     #[test]
     fn test_parse_input() {
-        let result = parse_input(TEST_INPUT);
-        assert!(result.is_ok());
-        let map = result.unwrap().1;
-        assert_eq!(map[0][0], Tile::Empty);
-        assert_eq!(map[0][4], Tile::Wall);
-        assert_eq!(map[6][4], Tile::Guard);
+        let (_, (walls, _, _)) = parse_input(TEST_INPUT).unwrap();
+        assert!(walls.contains(&Point(4, 0)));
     }
 
     #[test]
