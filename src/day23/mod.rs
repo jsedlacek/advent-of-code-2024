@@ -98,23 +98,11 @@ pub fn part2(input: &str) -> Vec<String> {
 fn bron_kerbosch_pivot<'a>(
     neighbor_map: &'a HashMap<&'a str, HashSet<&'a str>>,
     nodes: &'a HashSet<&'a str>,
-) -> BronKerboschIterator<'a> {
-    BronKerboschIterator {
-        neighbor_map,
-        stack: vec![(HashSet::new(), nodes.clone(), HashSet::new())],
-    }
-}
+) -> impl Iterator<Item = HashSet<&'a str>> {
+    let mut stack = vec![(HashSet::new(), nodes.clone(), HashSet::new())];
 
-struct BronKerboschIterator<'a> {
-    neighbor_map: &'a HashMap<&'a str, HashSet<&'a str>>,
-    stack: Vec<(HashSet<&'a str>, HashSet<&'a str>, HashSet<&'a str>)>,
-}
-
-impl<'a> Iterator for BronKerboschIterator<'a> {
-    type Item = HashSet<&'a str>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        while let Some((r, mut p, mut x)) = self.stack.pop() {
+    std::iter::from_fn(move || {
+        while let Some((r, mut p, mut x)) = stack.pop() {
             if p.is_empty() && x.is_empty() {
                 // Found a maximal clique
                 return Some(r);
@@ -123,15 +111,9 @@ impl<'a> Iterator for BronKerboschIterator<'a> {
             // Choose a pivot u from p ∪ x
             let u = p
                 .union(&x)
-                .max_by_key(|&&node| {
-                    self.neighbor_map
-                        .get(node)
-                        .unwrap()
-                        .intersection(&p)
-                        .count()
-                })
+                .max_by_key(|&&node| neighbor_map.get(node).unwrap().intersection(&p).count())
                 .unwrap();
-            let neighbors_u = self.neighbor_map.get(u).unwrap();
+            let neighbors_u = neighbor_map.get(u).unwrap();
 
             // Candidates are p \ N(u)
             let candidates: Vec<&str> = p.difference(neighbors_u).cloned().collect();
@@ -142,7 +124,7 @@ impl<'a> Iterator for BronKerboschIterator<'a> {
                 r_new.insert(v);
 
                 // p_new = p ∩ N(v)
-                let neighbors_v = self.neighbor_map.get(v).unwrap();
+                let neighbors_v = neighbor_map.get(v).unwrap();
                 let p_new = p
                     .intersection(neighbors_v)
                     .cloned()
@@ -155,15 +137,16 @@ impl<'a> Iterator for BronKerboschIterator<'a> {
                     .collect::<HashSet<&str>>();
 
                 // Push (r_new, p_new, x_new) onto the stack
-                self.stack.push((r_new, p_new, x_new));
+                stack.push((r_new, p_new, x_new));
 
                 // Remove v from p and add to x
                 p.remove(v);
                 x.insert(v);
             }
         }
+
         None
-    }
+    })
 }
 
 #[cfg(test)]
