@@ -85,7 +85,7 @@ pub fn part2(input: &str) -> Vec<String> {
     let mut results = BTreeSet::from_iter(queue.iter().cloned());
 
     while let Some(set) = queue.pop_front() {
-        let candidate_nodes = set
+        let neighbor_nodes = set
             .iter()
             .map(|node| neighbor_map.get(node).unwrap())
             .fold(None, |a, b| match a {
@@ -94,7 +94,7 @@ pub fn part2(input: &str) -> Vec<String> {
             })
             .unwrap();
 
-        for node in (&candidate_nodes - &set).iter() {
+        for node in (&neighbor_nodes - &set).iter() {
             let mut next_set = set.clone();
             next_set.insert(node);
 
