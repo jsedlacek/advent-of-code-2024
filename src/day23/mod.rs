@@ -72,8 +72,8 @@ pub fn part1(input: &str) -> u64 {
 pub fn part2(input: &str) -> Vec<String> {
     let (_, pairs) = parse_input(input).unwrap();
 
-    let nodes: HashSet<&str> =
-        HashSet::from_iter(pairs.iter().flat_map(|&(a, b)| once(a).chain(once(b))));
+    let nodes: BTreeSet<&str> =
+        BTreeSet::from_iter(pairs.iter().flat_map(|&(a, b)| once(a).chain(once(b))));
 
     let mut map: HashMap<&str, BTreeSet<&str>> = HashMap::new();
 
@@ -83,14 +83,10 @@ pub fn part2(input: &str) -> Vec<String> {
     }
 
     let mut queue: VecDeque<BTreeSet<&str>> = VecDeque::from([BTreeSet::new()]);
-    let mut results: HashSet<BTreeSet<&str>> = HashSet::from([BTreeSet::new()]);
+    let mut results: BTreeSet<BTreeSet<&str>> = BTreeSet::from([BTreeSet::new()]);
 
     while let Some(set) = queue.pop_front() {
-        for node in nodes.iter() {
-            if set.contains(node) {
-                continue;
-            }
-
+        for node in (&nodes - &set).iter() {
             let neighbor_set = map.get(node).unwrap();
 
             if neighbor_set.is_superset(&set) {
