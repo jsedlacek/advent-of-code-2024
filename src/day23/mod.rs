@@ -85,14 +85,11 @@ pub fn part2(input: &str) -> Vec<String> {
     let mut results = BTreeSet::from_iter(queue.iter().cloned());
 
     while let Some(set) = queue.pop_front() {
-        let neighbor_nodes = set
-            .iter()
-            .map(|node| neighbor_map.get(node).unwrap())
-            .fold(None, |a, b| match a {
-                None => Some(b.clone()),
-                Some(a) => Some(BTreeSet::from_iter(a.intersection(&b).copied())),
-            })
-            .unwrap();
+        let neighbor_nodes = {
+            let mut iter = set.iter().map(|node| neighbor_map.get(node).unwrap());
+            let first_set = iter.next().unwrap().clone();
+            iter.fold(first_set, |a, b| a.intersection(b).copied().collect())
+        };
 
         for node in (&neighbor_nodes - &set).iter() {
             let mut next_set = set.clone();
