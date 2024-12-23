@@ -72,38 +72,35 @@ pub fn part1(input: &str) -> u64 {
 pub fn part2(input: &str) -> Vec<String> {
     let (_, pairs) = parse_input(input).unwrap();
 
-    let nodes: BTreeSet<&str> =
-        BTreeSet::from_iter(pairs.iter().flat_map(|&(a, b)| once(a).chain(once(b))));
+    let nodes = BTreeSet::from_iter(pairs.iter().flat_map(|&(a, b)| once(a).chain(once(b))));
 
-    let mut map: HashMap<&str, BTreeSet<&str>> = HashMap::new();
+    let mut neighbor_map: HashMap<&str, BTreeSet<&str>> = HashMap::new();
 
     for (a, b) in pairs.iter() {
-        map.entry(a).or_default().insert(b);
-        map.entry(b).or_default().insert(a);
+        neighbor_map.entry(a).or_default().insert(b);
+        neighbor_map.entry(b).or_default().insert(a);
     }
 
-    let mut queue: VecDeque<BTreeSet<&str>> =
-        VecDeque::from_iter(nodes.iter().map(|&node| BTreeSet::from([node])));
-    let mut results: BTreeSet<BTreeSet<&str>> = BTreeSet::from_iter(queue.iter().cloned());
+    let mut queue = VecDeque::from_iter(nodes.iter().map(|&node| BTreeSet::from([node])));
+    let mut results = BTreeSet::from_iter(queue.iter().cloned());
 
     while let Some(set) = queue.pop_front() {
         let candidate_nodes = set
             .iter()
-            .flat_map(|node| map.get(node).unwrap())
-            .copied()
-            .collect::<BTreeSet<_>>();
+            .map(|node| neighbor_map.get(node).unwrap())
+            .fold(None, |a, b| match a {
+                None => Some(b.clone()),
+                Some(a) => Some(BTreeSet::from_iter(a.intersection(&b).copied())),
+            })
+            .unwrap();
 
         for node in (&candidate_nodes - &set).iter() {
-            let neighbor_set = map.get(node).unwrap();
+            let mut next_set = set.clone();
+            next_set.insert(node);
 
-            if neighbor_set.is_superset(&set) {
-                let mut next_set = set.clone();
-                next_set.insert(node);
-
-                if !results.contains(&next_set) {
-                    queue.push_back(next_set.clone());
-                    results.insert(next_set);
-                }
+            if !results.contains(&next_set) {
+                queue.push_back(next_set.clone());
+                results.insert(next_set);
             }
         }
     }
