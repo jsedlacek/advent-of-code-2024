@@ -82,11 +82,18 @@ pub fn part2(input: &str) -> Vec<String> {
         map.entry(b).or_default().insert(a);
     }
 
-    let mut queue: VecDeque<BTreeSet<&str>> = VecDeque::from([BTreeSet::new()]);
-    let mut results: BTreeSet<BTreeSet<&str>> = BTreeSet::from([BTreeSet::new()]);
+    let mut queue: VecDeque<BTreeSet<&str>> =
+        VecDeque::from_iter(nodes.iter().map(|&node| BTreeSet::from([node])));
+    let mut results: BTreeSet<BTreeSet<&str>> = BTreeSet::from_iter(queue.iter().cloned());
 
     while let Some(set) = queue.pop_front() {
-        for node in (&nodes - &set).iter() {
+        let candidate_nodes = set
+            .iter()
+            .flat_map(|node| map.get(node).unwrap())
+            .copied()
+            .collect::<BTreeSet<_>>();
+
+        for node in (&candidate_nodes - &set).iter() {
             let neighbor_set = map.get(node).unwrap();
 
             if neighbor_set.is_superset(&set) {
