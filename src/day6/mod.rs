@@ -1,18 +1,12 @@
+mod game;
+mod parse;
+
 use std::{collections::HashSet, error::Error};
 
-use nom::{
-    branch::alt,
-    bytes::complete::tag,
-    character::complete::newline,
-    combinator::map,
-    multi::{many1, separated_list1},
-    IResult,
-};
+use game::Game;
+use parse::parse_input;
 
-use crate::{
-    util::{iter_2d, Direction, Point, PointRange},
-    Puzzle,
-};
+use crate::{util::Direction, Puzzle};
 
 const INPUT: &str = include_str!("input.txt");
 
@@ -59,8 +53,7 @@ impl Part2 {
 
         Ok(obstructions
             .filter(|(guard, obstruction_pos)| {
-                let mut modified_game = game.clone();
-                modified_game.walls.insert(*obstruction_pos);
+                let modified_game = game.clone_with_obstacle(*obstruction_pos);
 
                 modified_game.is_loop(*guard)
             })
@@ -74,103 +67,11 @@ impl Puzzle for Part2 {
     }
 }
 
-#[derive(Debug, Clone)]
-struct Game {
-    walls: HashSet<Point>,
-    range: PointRange,
-}
-
-impl Game {
-    fn new(walls: HashSet<Point>, range: PointRange) -> Game {
-        Game { walls, range }
-    }
-
-    fn iter(&self, guard: (Point, Direction)) -> impl Iterator<Item = (Point, Direction)> + '_ {
-        let (mut pos, mut dir) = guard;
-
-        return std::iter::once(guard).chain(std::iter::from_fn(move || loop {
-            let new_pos = pos + dir;
-
-            if !self.range.contains(new_pos) {
-                return None;
-            }
-
-            if !self.walls.contains(&new_pos) {
-                pos = new_pos;
-                return Some((pos, dir));
-            }
-
-            dir = dir.rotate_clockwise();
-        }));
-    }
-
-    fn is_loop(&self, guard: (Point, Direction)) -> bool {
-        let mut visited_state = HashSet::new();
-
-        for state in self.iter(guard) {
-            if !visited_state.insert(state) {
-                return true;
-            }
-        }
-
-        false
-    }
-}
-
-#[derive(Debug, PartialEq, Clone, Copy)]
-enum Tile {
-    Empty,
-    Wall,
-    Guard,
-}
-
-fn parse_input(input: &str) -> IResult<&str, (HashSet<Point>, PointRange, Point)> {
-    map(separated_list1(newline, many1(parse_tile)), |tiles| {
-        let walls = iter_2d(&tiles)
-            .filter(|(_, &tile)| tile == Tile::Wall)
-            .map(|(pos, _)| pos)
-            .collect();
-
-        let range = PointRange::new(
-            Point(0, 0),
-            Point(tiles[0].len() as i64, tiles.len() as i64),
-        );
-
-        let guard_pos = iter_2d(&tiles)
-            .find(|(_, &tile)| tile == Tile::Guard)
-            .map(|(pos, _)| pos)
-            .unwrap();
-
-        (walls, range, guard_pos)
-    })(input)
-}
-
-fn parse_tile(input: &str) -> IResult<&str, Tile> {
-    alt((
-        map(tag("#"), |_| Tile::Wall),
-        map(tag("."), |_| Tile::Empty),
-        map(tag("^"), |_| Tile::Guard),
-    ))(input)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     const TEST_INPUT: &str = include_str!("test-input.txt");
-
-    #[test]
-    fn test_parse_tile() {
-        assert_eq!(parse_tile("#").unwrap(), ("", Tile::Wall));
-        assert_eq!(parse_tile(".").unwrap(), ("", Tile::Empty));
-        assert_eq!(parse_tile("^").unwrap(), ("", Tile::Guard));
-    }
-
-    #[test]
-    fn test_parse_input() {
-        let (_, (walls, _, _)) = parse_input(TEST_INPUT).unwrap();
-        assert!(walls.contains(&Point(4, 0)));
-    }
 
     #[test]
     fn test_part1_solve_input() {
