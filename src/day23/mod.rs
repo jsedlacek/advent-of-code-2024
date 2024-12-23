@@ -87,9 +87,12 @@ pub fn part2(input: &str) -> Vec<String> {
     let max_clique = cliques.max_by_key(|clique| clique.len()).unwrap();
 
     // Return the largest clique nodes in sorted order
-    let mut max_clique: Vec<&str> = max_clique.into_iter().collect();
+    let mut max_clique: Vec<String> = max_clique
+        .into_iter()
+        .map(|node| node.to_string())
+        .collect();
     max_clique.sort();
-    max_clique.iter().map(|node| node.to_string()).collect()
+    max_clique
 }
 
 fn bron_kerbosch_pivot<'a>(
@@ -118,9 +121,8 @@ impl<'a> Iterator for BronKerboschIterator<'a> {
             }
 
             // Choose a pivot u from p ∪ x
-            let p_union_x = p.union(&x).cloned().collect::<Vec<_>>();
-            let u = p_union_x
-                .iter()
+            let u = p
+                .union(&x)
                 .max_by_key(|&&node| {
                     self.neighbor_map
                         .get(node)
