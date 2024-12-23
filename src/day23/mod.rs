@@ -1,7 +1,4 @@
-use std::{
-    collections::{BTreeSet, HashMap, HashSet, VecDeque},
-    iter::once,
-};
+use std::collections::{BTreeSet, HashMap, HashSet};
 
 use nom::{
     bytes::complete::tag,
@@ -38,14 +35,14 @@ fn parse_input(input: &str) -> IResult<&str, Vec<(&str, &str)>> {
 pub fn part1(input: &str) -> u64 {
     let (_, pairs) = parse_input(input).unwrap();
 
-    let nodes: HashSet<&str> =
-        HashSet::from_iter(pairs.iter().flat_map(|&(a, b)| once(a).chain(once(b))));
+    let mut neighbor_map: HashMap<&str, HashSet<&str>> = HashMap::new();
+    let mut nodes = HashSet::new();
 
-    let mut map: HashMap<&str, HashSet<&str>> = HashMap::new();
-
-    for (a, b) in pairs.iter() {
-        map.entry(a).or_default().insert(b);
-        map.entry(b).or_default().insert(a);
+    for (a, b) in pairs.iter().copied() {
+        neighbor_map.entry(a).or_default().insert(b);
+        neighbor_map.entry(b).or_default().insert(a);
+        nodes.insert(a);
+        nodes.insert(b);
     }
 
     let mut trios = HashSet::new();
@@ -55,7 +52,7 @@ pub fn part1(input: &str) -> u64 {
             if a == node || b == node {
                 continue;
             }
-            let set = map.get(node).unwrap();
+            let set = neighbor_map.get(node).unwrap();
             if set.contains(&a) && set.contains(&b) {
                 let trio = BTreeSet::from([a, b, node]);
                 trios.insert(trio);
@@ -72,39 +69,99 @@ pub fn part1(input: &str) -> u64 {
 pub fn part2(input: &str) -> Vec<String> {
     let (_, pairs) = parse_input(input).unwrap();
 
-    let nodes = BTreeSet::from_iter(pairs.iter().flat_map(|&(a, b)| once(a).chain(once(b))));
+    // Build the neighbor map
+    let mut neighbor_map: HashMap<&str, HashSet<&str>> = HashMap::new();
+    let mut nodes = HashSet::new();
 
-    let mut neighbor_map: HashMap<&str, BTreeSet<&str>> = HashMap::new();
-
-    for (a, b) in pairs.iter() {
+    for (a, b) in pairs.iter().copied() {
         neighbor_map.entry(a).or_default().insert(b);
         neighbor_map.entry(b).or_default().insert(a);
+        nodes.insert(a);
+        nodes.insert(b);
     }
 
-    let mut queue = VecDeque::from_iter(nodes.iter().map(|&node| BTreeSet::from([node])));
-    let mut results = BTreeSet::from_iter(queue.iter().cloned());
+    // Collect all maximal cliques using the iterator
+    let cliques = bron_kerbosch_pivot(&neighbor_map, &nodes);
 
-    while let Some(set) = queue.pop_front() {
-        let neighbor_nodes = {
-            let mut iter = set.iter().map(|node| neighbor_map.get(node).unwrap());
-            let first_set = iter.next().unwrap().clone();
-            iter.fold(first_set, |a, b| a.intersection(b).copied().collect())
-        };
+    // Find the largest clique
+    let max_clique = cliques.max_by_key(|clique| clique.len()).unwrap();
 
-        for node in (&neighbor_nodes - &set).iter() {
-            let mut next_set = set.clone();
-            next_set.insert(node);
+    // Return the largest clique nodes in sorted order
+    let mut max_clique: Vec<&str> = max_clique.into_iter().collect();
+    max_clique.sort();
+    max_clique.iter().map(|node| node.to_string()).collect()
+}
 
-            if !results.contains(&next_set) {
-                queue.push_back(next_set.clone());
-                results.insert(next_set);
+fn bron_kerbosch_pivot<'a>(
+    neighbor_map: &'a HashMap<&'a str, HashSet<&'a str>>,
+    nodes: &'a HashSet<&'a str>,
+) -> BronKerboschIterator<'a> {
+    BronKerboschIterator {
+        neighbor_map,
+        stack: vec![(HashSet::new(), nodes.clone(), HashSet::new())],
+    }
+}
+
+struct BronKerboschIterator<'a> {
+    neighbor_map: &'a HashMap<&'a str, HashSet<&'a str>>,
+    stack: Vec<(HashSet<&'a str>, HashSet<&'a str>, HashSet<&'a str>)>,
+}
+
+impl<'a> Iterator for BronKerboschIterator<'a> {
+    type Item = HashSet<&'a str>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while let Some((r, mut p, mut x)) = self.stack.pop() {
+            if p.is_empty() && x.is_empty() {
+                // Found a maximal clique
+                return Some(r);
+            }
+
+            // Choose a pivot u from p ∪ x
+            let p_union_x = p.union(&x).cloned().collect::<Vec<_>>();
+            let u = p_union_x
+                .iter()
+                .max_by_key(|&&node| {
+                    self.neighbor_map
+                        .get(node)
+                        .unwrap()
+                        .intersection(&p)
+                        .count()
+                })
+                .unwrap();
+            let neighbors_u = self.neighbor_map.get(u).unwrap();
+
+            // Candidates are p \ N(u)
+            let candidates: Vec<&str> = p.difference(neighbors_u).cloned().collect();
+
+            for &v in candidates.iter() {
+                // r_new = r ∪ {v}
+                let mut r_new = r.clone();
+                r_new.insert(v);
+
+                // p_new = p ∩ N(v)
+                let neighbors_v = self.neighbor_map.get(v).unwrap();
+                let p_new = p
+                    .intersection(neighbors_v)
+                    .cloned()
+                    .collect::<HashSet<&str>>();
+
+                // x_new = x ∩ N(v)
+                let x_new = x
+                    .intersection(neighbors_v)
+                    .cloned()
+                    .collect::<HashSet<&str>>();
+
+                // Push (r_new, p_new, x_new) onto the stack
+                self.stack.push((r_new, p_new, x_new));
+
+                // Remove v from p and add to x
+                p.remove(v);
+                x.insert(v);
             }
         }
+        None
     }
-
-    let res = results.iter().max_by_key(|set| set.len()).unwrap();
-
-    res.iter().map(|node| node.to_string()).collect()
 }
 
 #[cfg(test)]
