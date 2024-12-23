@@ -1,19 +1,16 @@
-use std::{
-    collections::{HashMap, HashSet},
-    error::Error,
-};
+use std::{collections::HashSet, error::Error};
 
 use nom::{
     branch::alt,
     bytes::complete::tag,
     character::complete::newline,
     combinator::map,
-    multi::{many0, separated_list1},
+    multi::{many1, separated_list1},
     IResult,
 };
 
 use crate::{
-    util::{Direction, Point},
+    util::{iter_2d, Direction, Point, PointRange},
     Puzzle,
 };
 
@@ -48,11 +45,9 @@ impl Part2 {
 
         loop {
             if let Some((_, pos)) = game.next_move() {
-                if game.map.get(&pos) == Some(&Tile::Empty)
-                    && !game.visited_positions.contains(&pos)
-                {
+                if !game.visited_positions.contains(&pos) {
                     let mut modified_game = game.clone();
-                    modified_game.map.insert(pos, Tile::Wall);
+                    modified_game.walls.insert(pos);
 
                     if modified_game.play() == GameResult::Loop {
                         count += 1;
@@ -60,7 +55,7 @@ impl Part2 {
                 }
             }
 
-            if let ProgressResult::End = game.progress() {
+            if game.progress() == ProgressResult::End {
                 break;
             }
         }
@@ -77,13 +72,15 @@ impl Puzzle for Part2 {
 
 #[derive(Debug, Clone)]
 struct Game {
-    map: HashMap<Point, Tile>,
+    walls: HashSet<Point>,
+    range: PointRange,
     guard_pos: Point,
     dir: Direction,
     visited_positions: HashSet<Point>,
     visited_state: HashSet<(Direction, Point)>,
 }
 
+#[derive(PartialEq, Eq)]
 enum ProgressResult {
     Continue,
     End,
@@ -97,9 +94,10 @@ enum GameResult {
 }
 
 impl Game {
-    fn new(map: HashMap<Point, Tile>, guard_pos: Point) -> Game {
+    fn new(walls: HashSet<Point>, range: PointRange, guard_pos: Point) -> Game {
         Game {
-            map,
+            walls,
+            range,
             guard_pos,
             dir: Direction::Up,
             visited_positions: HashSet::new(),
@@ -110,21 +108,22 @@ impl Game {
     fn parse(input: &str) -> Result<Game, Box<dyn std::error::Error>> {
         let (_, tiles) = parse_input(input).map_err(|e| e.to_owned())?;
 
-        let mut map = HashMap::new();
-        let mut guard_pos = Point(0, 0);
+        let guard_pos = iter_2d(&tiles)
+            .find(|(_, &tile)| tile == Tile::Guard)
+            .map(|(pos, _)| pos)
+            .unwrap();
 
-        for (y, row) in tiles.iter().enumerate() {
-            for (x, &tile) in row.iter().enumerate() {
-                if tile == Tile::Guard {
-                    guard_pos = Point(x as i64, y as i64);
-                    map.insert(Point(x as i64, y as i64), Tile::Empty);
-                } else {
-                    map.insert(Point(x as i64, y as i64), tile);
-                }
-            }
-        }
+        let range = PointRange::new(
+            Point(0, 0),
+            Point(tiles[0].len() as i64, tiles.len() as i64),
+        );
 
-        Ok(Game::new(map, guard_pos))
+        let walls = iter_2d(&tiles)
+            .filter(|(_, &tile)| tile == Tile::Wall)
+            .map(|(pos, _)| pos)
+            .collect();
+
+        Ok(Game::new(walls, range, guard_pos))
     }
 
     fn next_move(&self) -> Option<(Direction, Point)> {
@@ -132,11 +131,15 @@ impl Game {
         loop {
             let new_pos = self.guard_pos + dir;
 
-            match self.map.get(&new_pos) {
-                Some(Tile::Empty) => return Some((dir, new_pos)),
-                Some(Tile::Wall) => dir = dir.rotate_clockwise(),
-                _ => return None,
+            if !self.range.contains(new_pos) {
+                return None;
             }
+
+            if !self.walls.contains(&new_pos) {
+                return Some((dir, new_pos));
+            }
+
+            dir = dir.rotate_clockwise();
         }
     }
 
@@ -181,7 +184,7 @@ enum Tile {
 }
 
 fn parse_input(input: &str) -> IResult<&str, Vec<Vec<Tile>>> {
-    separated_list1(newline, many0(parse_tile))(input)
+    separated_list1(newline, many1(parse_tile))(input)
 }
 
 fn parse_tile(input: &str) -> IResult<&str, Tile> {

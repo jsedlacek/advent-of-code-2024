@@ -196,6 +196,26 @@ where
     None
 }
 
+#[derive(Debug, Clone)]
+pub struct PointRange {
+    start: Point,
+    end: Point,
+}
+
+impl PointRange {
+    pub fn contains(&self, point: Point) -> bool {
+        let Point(x, y) = point;
+        let Point(start_x, start_y) = self.start;
+        let Point(end_x, end_y) = self.end;
+
+        x >= start_x && x < end_x && y >= start_y && y < end_y
+    }
+
+    pub fn new(start: Point, end: Point) -> Self {
+        Self { start, end }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
