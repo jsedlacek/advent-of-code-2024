@@ -75,13 +75,14 @@ fn part1(input: &str) -> Result<u64, Box<dyn std::error::Error>> {
 
     result_wires.sort();
 
-    let mut res = 0;
-
-    for w in result_wires.iter().rev() {
-        res = res * 2 + machine.get_value(&values, w).unwrap() as u64;
-    }
-
-    Ok(res)
+    result_wires
+        .iter()
+        .enumerate()
+        .map(|(i, w)| {
+            let value = machine.get_value(&values, w).ok_or("Invalid wire")? as u64;
+            Ok(value * 2u64.pow(i as u32))
+        })
+        .sum()
 }
 
 fn part2(input: &str) -> Result<String, Box<dyn std::error::Error>> {
