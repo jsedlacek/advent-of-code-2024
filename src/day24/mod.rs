@@ -71,11 +71,8 @@ fn part1(input: &str) -> Result<u64, Box<dyn std::error::Error>> {
 
     let machine = Machine::new(operations);
 
-    let mut result_wires = machine.get_out_wires().collect::<Vec<_>>();
-
-    result_wires.sort();
-
-    result_wires
+    machine
+        .get_out_wires()
         .iter()
         .enumerate()
         .map(|(i, w)| {
@@ -86,7 +83,7 @@ fn part1(input: &str) -> Result<u64, Box<dyn std::error::Error>> {
 }
 
 fn part2(input: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let add_machine = Machine::new_add_machine();
+    let add_machine = Machine::new_add_machine(46);
 
     let (_, (_, bad_ops)) = parse::parse_input(input).map_err(|e| e.to_owned())?;
 
@@ -94,9 +91,7 @@ fn part2(input: &str) -> Result<String, Box<dyn std::error::Error>> {
 
     let mut fixes = Vec::new();
 
-    for i in 0..=44 {
-        let out_wire = format!("z{i:02}");
-
+    for out_wire in swapped_machine.get_out_wires() {
         let swapped_def = swapped_machine.get_operation_def(&out_wire);
         let add_def = add_machine.get_operation_def(&out_wire);
 
@@ -130,10 +125,10 @@ impl Machine {
         Self { ops }
     }
 
-    fn new_add_machine() -> Self {
+    fn new_add_machine(size: usize) -> Self {
         let mut ops = HashMap::new();
 
-        for i in 0..=44 {
+        for i in 0..size {
             ops.insert(format!("carry{i:02}"), {
                 let i = i;
                 // c(i)=(x(i)∧y(i))∨(c(i−1)∧(x(i)⊕y(i)))
@@ -154,6 +149,12 @@ impl Machine {
 
                 if i == 0 {
                     Operation::new(Operator::Xor, format!("x{i:02}"), format!("y{i:02}"))
+                } else if i == size - 1 {
+                    Operation::new(
+                        Operator::Or,
+                        format!("and_xy{:02}", i - 1),
+                        format!("carry_prop{:02}", i - 1),
+                    )
                 } else {
                     Operation::new(
                         Operator::Xor,
@@ -186,8 +187,17 @@ impl Machine {
         Self { ops }
     }
 
-    fn get_out_wires(&self) -> impl Iterator<Item = String> + '_ {
-        self.ops.keys().filter(|var| var.starts_with("z")).cloned()
+    fn get_out_wires(&self) -> Vec<String> {
+        let mut out_wires = self
+            .ops
+            .keys()
+            .filter(|var| var.starts_with("z"))
+            .cloned()
+            .collect::<Vec<_>>();
+
+        out_wires.sort();
+
+        out_wires
     }
 
     fn get_value(&self, values: &HashMap<String, bool>, name: &str) -> Option<bool> {
