@@ -107,7 +107,10 @@ fn part2(input: &str) -> Result<String, Box<dyn std::error::Error>> {
 
                 fixes.extend([a, b]);
             } else {
-                panic!("Invalid wire {out_wire} = {} != {}", &swapped_def, &add_def);
+                Err(format!(
+                    "Invalid wire {out_wire} = {} != {}",
+                    &swapped_def, &add_def
+                ))?;
             }
         }
     }
