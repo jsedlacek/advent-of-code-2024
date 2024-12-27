@@ -96,7 +96,7 @@ fn part2(input: &str) -> Result<String, Box<dyn std::error::Error>> {
         let add_def = add_machine.get_operation_def(&out_wire);
 
         if swapped_def != add_def {
-            let fixed_op = find_fix(&swapped_machine, &add_machine, &out_wire, &out_wire);
+            let fixed_op = swapped_machine.find_fix(&out_wire, &add_machine, &out_wire);
 
             if let Some((a, b)) = fixed_op {
                 swapped_machine.fix_operation((&a, &b));
@@ -253,48 +253,48 @@ impl Machine {
             })
             .collect();
     }
-}
 
-fn find_fix(
-    bad: &Machine,
-    good: &Machine,
-    bad_name: &str,
-    good_name: &str,
-) -> Option<(String, String)> {
-    let def = good.get_operation_def(good_name);
+    fn find_fix(
+        &self,
+        name: &str,
+        correct_machine: &Machine,
+        correct_name: &str,
+    ) -> Option<(String, String)> {
+        let def = correct_machine.get_operation_def(correct_name);
 
-    let fixed_op = bad
-        .ops
-        .iter()
-        .find(|(name, _)| bad.get_operation_def(name) == def);
+        let fixed_op = self
+            .ops
+            .iter()
+            .find(|(name, _)| self.get_operation_def(name) == def);
 
-    if let Some((fixed_op, _)) = fixed_op {
-        return Some((fixed_op.to_string(), bad_name.to_string()));
-    }
+        if let Some((fixed_op, _)) = fixed_op {
+            return Some((fixed_op.to_string(), name.to_string()));
+        }
 
-    if let (Some(bad_op), Some(good_op)) = (bad.ops.get(bad_name), good.ops.get(bad_name)) {
-        if bad_op.op == good_op.op {
-            let bad_def_a = bad.get_operation_def(&bad_op.in_a);
-            let bad_def_b = bad.get_operation_def(&bad_op.in_b);
-            let good_def_a = good.get_operation_def(&good_op.in_a);
-            let good_def_b = good.get_operation_def(&good_op.in_b);
+        if let (Some(op), Some(good_op)) = (self.ops.get(name), correct_machine.ops.get(name)) {
+            if op.op == good_op.op {
+                let def_a = self.get_operation_def(&op.in_a);
+                let bad_def_b = self.get_operation_def(&op.in_b);
+                let correct_def_a = correct_machine.get_operation_def(&good_op.in_a);
+                let correct_def_b = correct_machine.get_operation_def(&good_op.in_b);
 
-            if bad_def_a == good_def_a {
-                return find_fix(bad, good, &bad_op.in_b, &good_op.in_b);
-            }
-            if bad_def_b == good_def_b {
-                return find_fix(bad, good, &bad_op.in_a, &good_op.in_a);
-            }
-            if bad_def_a == good_def_b {
-                return find_fix(bad, good, &bad_op.in_b, &good_op.in_a);
-            }
-            if bad_def_b == good_def_a {
-                return find_fix(bad, good, &bad_op.in_a, &good_op.in_b);
+                if def_a == correct_def_a {
+                    return self.find_fix(&op.in_b, correct_machine, &good_op.in_b);
+                }
+                if bad_def_b == correct_def_b {
+                    return self.find_fix(&op.in_a, correct_machine, &good_op.in_a);
+                }
+                if def_a == correct_def_b {
+                    return self.find_fix(&op.in_b, correct_machine, &good_op.in_a);
+                }
+                if bad_def_b == correct_def_a {
+                    return self.find_fix(&op.in_a, correct_machine, &good_op.in_b);
+                }
             }
         }
-    }
 
-    None
+        None
+    }
 }
 
 #[cfg(test)]
