@@ -1,6 +1,6 @@
 mod parse;
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use crate::Puzzle;
 
@@ -71,7 +71,7 @@ fn part1(input: &str) -> Result<u64, Box<dyn std::error::Error>> {
 
     let machine = Machine::new(operations);
 
-    let mut result_wires = machine.get_out_wires().iter().cloned().collect::<Vec<_>>();
+    let mut result_wires = machine.get_out_wires().collect::<Vec<_>>();
 
     result_wires.sort();
 
@@ -185,12 +185,8 @@ impl Machine {
         Self { ops }
     }
 
-    fn get_out_wires(&self) -> HashSet<String> {
-        self.ops
-            .keys()
-            .filter(|var| var.starts_with("z"))
-            .cloned()
-            .collect()
+    fn get_out_wires(&self) -> impl Iterator<Item = String> + '_ {
+        self.ops.keys().filter(|var| var.starts_with("z")).cloned()
     }
 
     fn get_value(&self, values: &HashMap<String, bool>, name: &str) -> Option<bool> {
