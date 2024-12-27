@@ -6,6 +6,22 @@ use crate::Puzzle;
 
 const INPUT: &str = include_str!("input.txt");
 
+pub struct Part1;
+
+impl Puzzle for Part1 {
+    fn solve(&self) -> Result<String, Box<dyn std::error::Error>> {
+        part1(INPUT).map(|res| res.to_string())
+    }
+}
+
+pub struct Part2;
+
+impl Puzzle for Part2 {
+    fn solve(&self) -> Result<String, Box<dyn std::error::Error>> {
+        part2(INPUT)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Operator {
     And,
@@ -50,155 +66,48 @@ impl Operation {
     }
 }
 
-struct Game {
-    values: HashMap<String, bool>,
-    operations: HashMap<String, Operation>,
-}
-
-impl Game {
-    fn wires(&self) -> HashSet<String> {
-        HashSet::from_iter(self.values.keys().chain(self.operations.keys()).cloned())
-    }
-
-    fn get_value(&self, name: &str) -> Option<bool> {
-        if let Some(&value) = self.values.get(name) {
-            return Some(value);
-        }
-
-        if let Some(operation) = self.operations.get(name) {
-            return Some(operation.op.calc(
-                self.get_value(&operation.in_a)?,
-                self.get_value(&operation.in_b)?,
-            ));
-        }
-
-        None
-    }
-}
-
-fn get_operation_def(ops: &HashMap<String, Operation>, name: &str) -> String {
-    if let Some(operation) = ops.get(name) {
-        let (mut a, mut b) = (
-            get_operation_def(ops, &operation.in_a),
-            get_operation_def(ops, &operation.in_b),
-        );
-
-        if a > b {
-            (a, b) = (b, a);
-        }
-
-        let def = format!("({} {} {})", a, operation.op, b);
-
-        def
-    } else {
-        name.to_string()
-    }
-}
-
-fn xor(a: &str, b: &str) -> Operation {
-    Operation::new(Operator::Xor, a.to_string(), b.to_string())
-}
-
-fn or(a: &str, b: &str) -> Operation {
-    Operation::new(Operator::Or, a.to_string(), b.to_string())
-}
-
-fn sum_bit(i: u64) -> Operation {
-    // s(i)=x(i)⊕y(i)⊕c(i−1)
-
-    if i == 0 {
-        xor(&format!("x{i:02}"), &format!("y{i:02}"))
-    } else {
-        xor(&format!("xor_xy{:02}", i), &format!("carry{:02}", i - 1))
-    }
-}
-
-fn carry_bit(i: u64) -> Operation {
-    // c(i)=(x(i)∧y(i))∨(c(i−1)∧(x(i)⊕y(i)))
-
-    if i == 0 {
-        and_xy(i)
-    } else {
-        or(&format!("and_xy{:02}", i), &format!("carry_prop{:02}", i))
-    }
-}
-
-fn carry_prop(i: u64) -> Operation {
-    Operation::new(
-        Operator::And,
-        format!("carry{:02}", i - 1),
-        format!("xor_xy{:02}", i),
-    )
-}
-
-fn and_xy(i: u64) -> Operation {
-    Operation::new(Operator::And, format!("x{i:02}"), format!("y{i:02}"))
-}
-
-fn xor_xy(i: u64) -> Operation {
-    Operation::new(Operator::Xor, format!("x{i:02}"), format!("y{i:02}"))
-}
-
 fn part1(input: &str) -> Result<u64, Box<dyn std::error::Error>> {
     let (_, (values, operations)) = parse::parse_input(input).map_err(|e| e.to_owned())?;
 
-    let game = Game { values, operations };
+    let machine = Machine::new(operations);
 
-    let mut result_wires = game
-        .wires()
-        .iter()
-        .filter(|var| var.starts_with("z"))
-        .cloned()
-        .collect::<Vec<_>>();
+    let mut result_wires = machine.get_out_wires().iter().cloned().collect::<Vec<_>>();
 
     result_wires.sort();
 
     let mut res = 0;
 
     for w in result_wires.iter().rev() {
-        res = res * 2 + game.get_value(w).unwrap() as u64;
+        res = res * 2 + machine.get_value(&values, w).unwrap() as u64;
     }
 
     Ok(res)
 }
 
 fn part2(input: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let mut good_ops = HashMap::new();
-
-    for i in 0..=44 {
-        good_ops.insert(format!("carry{i:02}"), carry_bit(i));
-        good_ops.insert(format!("z{i:02}"), sum_bit(i));
-        good_ops.insert(format!("xor_xy{i:02}"), xor_xy(i));
-        good_ops.insert(format!("and_xy{i:02}"), and_xy(i));
-
-        if i > 0 {
-            good_ops.insert(format!("carry_prop{i:02}"), carry_prop(i));
-        }
-    }
-
-    let good_machine = Machine::new(good_ops);
+    let add_machine = Machine::new_add_machine();
 
     let (_, (_, bad_ops)) = parse::parse_input(input).map_err(|e| e.to_owned())?;
 
-    let mut bad_machine = Machine::new(bad_ops);
+    let mut swapped_machine = Machine::new(bad_ops);
 
     let mut fixes = Vec::new();
 
     for i in 0..=44 {
         let out_wire = format!("z{i:02}");
 
-        let bad_def = get_operation_def(&bad_machine.ops_by_name, &out_wire);
-        let good_def = get_operation_def(&good_machine.ops_by_name, &out_wire);
+        let swapped_def = swapped_machine.get_operation_def(&out_wire);
+        let add_def = add_machine.get_operation_def(&out_wire);
 
-        if bad_def != good_def {
-            let fixed_op = find_fix(&bad_machine, &good_machine, &out_wire, &out_wire);
+        if swapped_def != add_def {
+            let fixed_op = find_fix(&swapped_machine, &add_machine, &out_wire, &out_wire);
 
             if let Some((a, b)) = fixed_op {
-                bad_machine.fix_operation((&a, &b));
+                swapped_machine.fix_operation((&a, &b));
 
                 fixes.extend([a, b]);
             } else {
-                panic!("Invalid wire {out_wire} = {} != {}", &bad_def, &good_def);
+                panic!("Invalid wire {out_wire} = {} != {}", &swapped_def, &add_def);
             }
         }
     }
@@ -209,32 +118,117 @@ fn part2(input: &str) -> Result<String, Box<dyn std::error::Error>> {
 }
 
 struct Machine {
-    ops_by_name: HashMap<String, Operation>,
-    names_by_def: HashMap<String, String>,
+    ops: HashMap<String, Operation>,
 }
 
 impl Machine {
-    fn new(ops_by_name: HashMap<String, Operation>) -> Self {
-        let names_by_def = Self::get_names_by_def(&ops_by_name);
-
-        Self {
-            ops_by_name,
-            names_by_def,
-        }
+    fn new(ops: HashMap<String, Operation>) -> Self {
+        Self { ops }
     }
 
-    fn get_names_by_def(ops_by_name: &HashMap<String, Operation>) -> HashMap<String, String> {
-        ops_by_name
+    fn new_add_machine() -> Self {
+        let mut ops = HashMap::new();
+
+        for i in 0..=44 {
+            ops.insert(format!("carry{i:02}"), {
+                let i = i;
+                // c(i)=(x(i)∧y(i))∨(c(i−1)∧(x(i)⊕y(i)))
+
+                if i == 0 {
+                    Operation::new(Operator::And, format!("x{i:02}"), format!("y{i:02}"))
+                } else {
+                    Operation::new(
+                        Operator::Or,
+                        format!("and_xy{:02}", i),
+                        format!("carry_prop{:02}", i),
+                    )
+                }
+            });
+            ops.insert(format!("z{i:02}"), {
+                let i = i;
+                // s(i)=x(i)⊕y(i)⊕c(i−1)
+
+                if i == 0 {
+                    Operation::new(Operator::Xor, format!("x{i:02}"), format!("y{i:02}"))
+                } else {
+                    Operation::new(
+                        Operator::Xor,
+                        format!("xor_xy{:02}", i),
+                        format!("carry{:02}", i - 1),
+                    )
+                }
+            });
+            ops.insert(format!("xor_xy{i:02}"), {
+                let i = i;
+                Operation::new(Operator::Xor, format!("x{i:02}"), format!("y{i:02}"))
+            });
+            ops.insert(format!("and_xy{i:02}"), {
+                let i = i;
+                Operation::new(Operator::And, format!("x{i:02}"), format!("y{i:02}"))
+            });
+
+            if i > 0 {
+                ops.insert(format!("carry_prop{i:02}"), {
+                    let i = i;
+                    Operation::new(
+                        Operator::And,
+                        format!("carry{:02}", i - 1),
+                        format!("xor_xy{:02}", i),
+                    )
+                });
+            }
+        }
+
+        Self { ops }
+    }
+
+    fn get_out_wires(&self) -> HashSet<String> {
+        self.ops
             .keys()
-            .map(|name| (get_operation_def(&ops_by_name, name), name.to_string()))
+            .filter(|var| var.starts_with("z"))
+            .cloned()
             .collect()
+    }
+
+    fn get_value(&self, values: &HashMap<String, bool>, name: &str) -> Option<bool> {
+        if let Some(&value) = values.get(name) {
+            return Some(value);
+        }
+
+        if let Some(operation) = self.ops.get(name) {
+            return Some(operation.op.calc(
+                self.get_value(values, &operation.in_a)?,
+                self.get_value(values, &operation.in_b)?,
+            ));
+        }
+
+        None
+    }
+
+    fn get_operation_def(&self, name: &str) -> String {
+        if let Some(operation) = self.ops.get(name) {
+            let (mut a, mut b) = (
+                self.get_operation_def(&operation.in_a),
+                self.get_operation_def(&operation.in_b),
+            );
+
+            if a > b {
+                (a, b) = (b, a);
+            }
+
+            let def = format!("({} {} {})", a, operation.op, b);
+
+            def
+        } else {
+            name.to_string()
+        }
     }
 
     fn fix_operation(&mut self, fix: (&str, &str)) {
         let (a, b) = fix;
 
-        self.ops_by_name = self
-            .ops_by_name
+        self.ops = self
+            .ops
             .iter()
             .map(|(name, operation)| {
                 if name == a {
@@ -248,8 +242,6 @@ impl Machine {
                 (name.to_string(), operation.clone())
             })
             .collect();
-
-        self.names_by_def = Self::get_names_by_def(&self.ops_by_name);
     }
 }
 
@@ -259,22 +251,23 @@ fn find_fix(
     bad_name: &str,
     good_name: &str,
 ) -> Option<(String, String)> {
-    let def = get_operation_def(&good.ops_by_name, good_name);
-    let fixed_op = bad.names_by_def.get(&def);
+    let def = good.get_operation_def(good_name);
 
-    if let Some(fixed_op) = fixed_op {
+    let fixed_op = bad
+        .ops
+        .iter()
+        .find(|(name, _)| bad.get_operation_def(name) == def);
+
+    if let Some((fixed_op, _)) = fixed_op {
         return Some((fixed_op.to_string(), bad_name.to_string()));
     }
 
-    if let (Some(bad_op), Some(good_op)) = (
-        bad.ops_by_name.get(bad_name),
-        good.ops_by_name.get(bad_name),
-    ) {
+    if let (Some(bad_op), Some(good_op)) = (bad.ops.get(bad_name), good.ops.get(bad_name)) {
         if bad_op.op == good_op.op {
-            let bad_def_a = get_operation_def(&bad.ops_by_name, &bad_op.in_a);
-            let bad_def_b = get_operation_def(&bad.ops_by_name, &bad_op.in_b);
-            let good_def_a = get_operation_def(&good.ops_by_name, &good_op.in_a);
-            let good_def_b = get_operation_def(&good.ops_by_name, &good_op.in_b);
+            let bad_def_a = bad.get_operation_def(&bad_op.in_a);
+            let bad_def_b = bad.get_operation_def(&bad_op.in_b);
+            let good_def_a = good.get_operation_def(&good_op.in_a);
+            let good_def_b = good.get_operation_def(&good_op.in_b);
 
             if bad_def_a == good_def_a {
                 return find_fix(bad, good, &bad_op.in_b, &good_op.in_b);
@@ -292,22 +285,6 @@ fn find_fix(
     }
 
     None
-}
-
-pub struct Part1;
-
-impl Puzzle for Part1 {
-    fn solve(&self) -> Result<String, Box<dyn std::error::Error>> {
-        part1(INPUT).map(|res| res.to_string())
-    }
-}
-
-pub struct Part2;
-
-impl Puzzle for Part2 {
-    fn solve(&self) -> Result<String, Box<dyn std::error::Error>> {
-        part2(INPUT)
-    }
 }
 
 #[cfg(test)]
