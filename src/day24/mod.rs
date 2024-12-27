@@ -24,9 +24,9 @@ impl Puzzle for Part2 {
 }
 
 fn part1(input: &str) -> Result<u64, Box<dyn std::error::Error>> {
-    let (_, (values, operations)) = parse::parse_input(input).map_err(|e| e.to_owned())?;
+    let (_, (values, ops)) = parse::parse_input(input).map_err(|e| e.to_owned())?;
 
-    let machine = Machine::new(operations);
+    let machine = Machine::new(ops);
 
     machine
         .get_out_wires()
@@ -42,9 +42,9 @@ fn part1(input: &str) -> Result<u64, Box<dyn std::error::Error>> {
 fn part2(input: &str) -> Result<String, Box<dyn std::error::Error>> {
     let add_machine = Machine::new_add_machine(46);
 
-    let (_, (_, bad_ops)) = parse::parse_input(input).map_err(|e| e.to_owned())?;
+    let (_, (_, ops)) = parse::parse_input(input).map_err(|e| e.to_owned())?;
 
-    let mut swapped_machine = Machine::new(bad_ops);
+    let mut swapped_machine = Machine::new(ops);
 
     let mut fixes = Vec::new();
 
