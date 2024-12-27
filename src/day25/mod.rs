@@ -17,16 +17,14 @@ impl Puzzle for Part1 {
 fn part1(locks: Vec<Vec<u64>>, keys: Vec<Vec<u64>>) -> u64 {
     locks
         .iter()
-        .map(|lock| {
-            keys.iter()
-                .filter(|key| {
-                    lock.iter()
-                        .zip(key.iter())
-                        .all(|(lock_height, key_height)| lock_height >= key_height)
-                })
-                .count() as u64
+        .flat_map(|lock| {
+            keys.iter().filter(|key| {
+                lock.iter()
+                    .zip(key.iter())
+                    .all(|(lock_height, key_height)| lock_height >= key_height)
+            })
         })
-        .sum::<u64>()
+        .count() as u64
 }
 
 #[cfg(test)]
