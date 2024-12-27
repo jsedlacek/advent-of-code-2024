@@ -10,7 +10,7 @@ use nom::{
     IResult,
 };
 
-use super::{Operation, Operator};
+use super::machine::{Operation, Operator};
 
 pub fn parse_input(
     input: &str,
