@@ -17,7 +17,7 @@ impl Part1 {
         Ok(list1
             .iter()
             .zip(list2.iter())
-            .map(|(&a, &b)| ((a as i64) - (b as i64)).abs() as u64)
+            .map(|(&a, &b)| ((a as i64) - (b as i64)).unsigned_abs())
             .sum())
     }
 }
@@ -67,9 +67,9 @@ fn parse_line(line: &str) -> Result<(u64, u64), Box<dyn Error>> {
         .collect::<Result<Vec<_>, _>>()?;
 
     if let [a, b] = &numbers[..] {
-        return Ok((*a, *b));
+        Ok((*a, *b))
     } else {
-        return Err(format!("Invalid line: {}", line).into());
+        Err(format!("Invalid line: {}", line).into())
     }
 }
 

@@ -103,7 +103,7 @@ impl Equation {
                     }
                 }
 
-                return false;
+                false
             }
 
             _ => false,

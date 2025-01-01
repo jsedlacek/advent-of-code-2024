@@ -136,7 +136,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     puzzles.sort_by_key(|((day, part), _)| (*day, *part));
 
     if puzzles.is_empty() {
-        return Err(format!("Puzzle not found").into());
+        return Err("Puzzle not found".to_string().into());
     }
 
     for ((day, part), puzzle) in puzzles {

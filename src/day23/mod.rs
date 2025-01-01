@@ -24,7 +24,7 @@ pub struct Part2;
 
 impl Puzzle for Part2 {
     fn solve(&self) -> Result<String, Box<dyn std::error::Error>> {
-        Ok(format!("{}", part2(INPUT).join(",")))
+        Ok(part2(INPUT).join(",").to_string())
     }
 }
 

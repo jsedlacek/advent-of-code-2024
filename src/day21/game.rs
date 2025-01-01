@@ -65,9 +65,9 @@ impl Game {
 
     fn is_position_valid(pos: Point, level: u64) -> bool {
         if level == 0 {
-            return Digit::get_by_pos(pos).is_some();
+            Digit::get_by_pos(pos).is_some()
         } else {
-            return Key::get_by_pos(pos).is_some();
+            Key::get_by_pos(pos).is_some()
         }
     }
 
@@ -114,7 +114,7 @@ impl Game {
                     .all(|pos| Self::is_position_valid(pos, level))
             })
             .map(|path| {
-                path.map(|d| Key::Direction(d))
+                path.map(Key::Direction)
                     .chain(std::iter::once(Key::Activate))
                     .map(|k| k.get_position())
             })

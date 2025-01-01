@@ -65,7 +65,7 @@ fn part2(input: &str, size: Point) -> Result<Point, Box<dyn std::error::Error>> 
         game.find_path(start, end).is_none()
     });
 
-    return Ok(points[res]);
+    Ok(points[res])
 }
 
 pub struct Part2;

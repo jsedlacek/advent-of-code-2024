@@ -27,8 +27,7 @@ fn parse_input(input: &str) -> Vec<Vec<Digit>> {
         .lines()
         .map(|line| {
             line.chars()
-                .map(|c| Digit::from_char(c))
-                .flatten()
+                .filter_map(Digit::from_char)
                 .collect()
         })
         .collect()
@@ -44,9 +43,9 @@ fn get_complexity(input: &str, max_level: u64) -> Result<u64, Box<dyn std::error
         .map(|code| {
             let sequence_len = game.get_sequence_len(code.iter().copied());
 
-            let num = Game::get_numeric_part(code.into_iter());
+            let num = Game::get_numeric_part(code);
 
-            num * sequence_len as u64
+            num * sequence_len
         })
         .sum::<u64>();
 

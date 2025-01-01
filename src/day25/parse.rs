@@ -13,7 +13,10 @@ enum Item {
     Key(Vec<u64>),
 }
 
-pub fn parse_input(input: &str) -> IResult<&str, (Vec<Vec<u64>>, Vec<Vec<u64>>)> {
+type Lock = Vec<u64>;
+type Key = Vec<u64>;
+
+pub fn parse_input(input: &str) -> IResult<&str, (Vec<Lock>, Vec<Key>)> {
     map(
         separated_list1(
             many1(newline),
@@ -41,7 +44,7 @@ pub fn parse_input(input: &str) -> IResult<&str, (Vec<Vec<u64>>, Vec<Vec<u64>>)>
     )(input)
 }
 
-fn parse_lock(input: &str) -> IResult<&str, Vec<u64>> {
+fn parse_lock(input: &str) -> IResult<&str, Lock> {
     map(
         tuple((
             terminated(count(tag("#"), 5), newline),
@@ -61,7 +64,7 @@ fn parse_lock(input: &str) -> IResult<&str, Vec<u64>> {
     )(input)
 }
 
-fn parse_key(input: &str) -> IResult<&str, Vec<u64>> {
+fn parse_key(input: &str) -> IResult<&str, Key> {
     map(
         tuple((
             terminated(count(tag("."), 5), newline),

@@ -64,7 +64,7 @@ impl Part2 {
     ) -> Vec<u64> {
         let mut res = Vec::new();
         for register_a in starting_index..(starting_index + 8) {
-            let mut computer = computer.clone_with_register_a(register_a as u64);
+            let mut computer = computer.clone_with_register_a(register_a);
             let output = computer.run();
 
             if output == expected_output {
@@ -72,7 +72,7 @@ impl Part2 {
             }
         }
 
-        return res;
+        res
     }
 }
 

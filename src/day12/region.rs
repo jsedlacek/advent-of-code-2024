@@ -62,7 +62,6 @@ impl Region {
             .iter()
             .map(|&point| {
                 Direction::all()
-                    .into_iter()
                     .filter(|&direction| !self.points.contains(&(point + direction)))
                     .count() as u64
             })
@@ -215,7 +214,7 @@ mod tests {
                 points: HashSet::from([Point(0, 0)])
             }
             .price_v1(),
-            1 * 4
+            4
         );
 
         assert_eq!(
@@ -245,7 +244,7 @@ mod tests {
                 points: HashSet::from([Point(0, 0)])
             }
             .price_v2(),
-            1 * 4
+            4
         );
 
         assert_eq!(

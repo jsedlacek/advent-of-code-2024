@@ -29,7 +29,7 @@ fn parse_rule(input: &str) -> IResult<&str, Rule> {
 }
 
 fn parse_update(input: &str) -> IResult<&str, Update> {
-    map(separated_list1(tag(","), u64), |list| Update(list))(input)
+    map(separated_list1(tag(","), u64), Update)(input)
 }
 
 #[cfg(test)]

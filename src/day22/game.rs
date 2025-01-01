@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 pub fn part1(numbers: impl IntoIterator<Item = u64>) -> u64 {
     numbers
         .into_iter()
-        .filter_map(|number| Sequence::new(number).skip(2000).next())
+        .filter_map(|number| Sequence::new(number).nth(2000))
         .sum()
 }
 
@@ -48,9 +48,9 @@ fn next_secret_number(secret_number: u64) -> u64 {
     let secret_number = prune(secret_number);
 
     let secret_number = mix(secret_number, secret_number * 2048);
-    let secret_number = prune(secret_number);
+    
 
-    secret_number
+    prune(secret_number)
 }
 
 fn mix(a: u64, b: u64) -> u64 {

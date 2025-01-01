@@ -55,7 +55,7 @@ impl Puzzle for Part2 {
     }
 }
 
-fn has_match(map: &Vec<Vec<char>>, pos: Point, direction: Point) -> bool {
+fn has_match(map: &[Vec<char>], pos: Point, direction: Point) -> bool {
     const NEEDLE: &str = "XMAS";
 
     let Point(x, y) = pos;
@@ -69,7 +69,7 @@ fn has_match(map: &Vec<Vec<char>>, pos: Point, direction: Point) -> bool {
     }
 
     for (i, c) in NEEDLE.chars().enumerate() {
-        if map[(y as i64 + i as i64 * dy) as usize][(x as i64 + i as i64 * dx) as usize] != c {
+        if map[(y + i as i64 * dy) as usize][(x + i as i64 * dx) as usize] != c {
             return false;
         }
     }
@@ -77,7 +77,7 @@ fn has_match(map: &Vec<Vec<char>>, pos: Point, direction: Point) -> bool {
     true
 }
 
-fn has_match_part2(map: &Vec<Vec<char>>, pos: Point) -> bool {
+fn has_match_part2(map: &[Vec<char>], pos: Point) -> bool {
     const NEEDLE: &str = "MAS";
     const NEEDLE_REV: &str = "SAM";
 

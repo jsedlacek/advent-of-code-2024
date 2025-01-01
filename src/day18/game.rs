@@ -20,17 +20,11 @@ impl Game {
             Direction::all()
                 .map(move |direction| point + direction)
                 .filter(|point| {
-                    if self.corrupted_points.contains(&point) {
+                    if self.corrupted_points.contains(point) {
                         false
-                    } else if point.0 < 0
+                    } else { !(point.0 < 0
                         || point.1 < 0
-                        || point.0 >= self.size.0
-                        || point.1 >= self.size.1
-                    {
-                        false
-                    } else {
-                        true
-                    }
+                        || point.0 >= self.size.0 || point.1 >= self.size.1) }
                 })
         }) {
             return Some(len);

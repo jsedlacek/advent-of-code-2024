@@ -34,9 +34,9 @@ impl Stone {
     }
 }
 
-impl ToString for Stone {
-    fn to_string(&self) -> String {
-        self.number.to_string()
+impl std::fmt::Display for Stone {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.number)
     }
 }
 

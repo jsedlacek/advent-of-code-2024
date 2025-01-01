@@ -12,9 +12,10 @@ use nom::{
 
 use super::machine::{Operation, Operator};
 
-pub fn parse_input(
-    input: &str,
-) -> IResult<&str, (HashMap<String, bool>, HashMap<String, Operation>)> {
+type Instructions = HashMap<String, Operation>;
+type Variables = HashMap<String, bool>;
+
+pub fn parse_input(input: &str) -> IResult<&str, (Variables, Instructions)> {
     map(
         separated_pair(
             separated_list1(newline, parse_variable),

@@ -106,7 +106,6 @@ impl Direction {
     }
 
     #[allow(dead_code)]
-
     pub fn opposite(&self) -> Direction {
         match self {
             Direction::Up => Direction::Down,
@@ -158,7 +157,7 @@ where
         }
     }
 
-    return l - T::from(1u8);
+    l - T::from(1u8)
 }
 
 pub fn bfs<T, I>(start: T, end: T, get_neighbors: impl Fn(T) -> I) -> Option<(u64, Vec<T>)>

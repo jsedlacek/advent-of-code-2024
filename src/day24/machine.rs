@@ -14,7 +14,6 @@ impl Machine {
 
         for i in 0..size {
             ops.insert(format!("carry{i:02}"), {
-                let i = i;
                 // c(i)=(x(i)∧y(i))∨(c(i−1)∧(x(i)⊕y(i)))
 
                 if i == 0 {
@@ -28,7 +27,6 @@ impl Machine {
                 }
             });
             ops.insert(format!("z{i:02}"), {
-                let i = i;
                 // s(i)=x(i)⊕y(i)⊕c(i−1)
 
                 if i == 0 {
@@ -48,17 +46,14 @@ impl Machine {
                 }
             });
             ops.insert(format!("xor_xy{i:02}"), {
-                let i = i;
                 Operation::new(Operator::Xor, format!("x{i:02}"), format!("y{i:02}"))
             });
             ops.insert(format!("and_xy{i:02}"), {
-                let i = i;
                 Operation::new(Operator::And, format!("x{i:02}"), format!("y{i:02}"))
             });
 
             if i > 0 {
                 ops.insert(format!("carry_prop{i:02}"), {
-                    let i = i;
                     Operation::new(
                         Operator::And,
                         format!("carry{:02}", i - 1),

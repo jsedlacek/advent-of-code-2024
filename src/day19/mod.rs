@@ -18,7 +18,7 @@ impl Part1 {
 
         Ok(patterns
             .iter()
-            .filter(|p| game.design_count(&p) > 0)
+            .filter(|p| game.design_count(p) > 0)
             .count() as u64)
     }
 }
@@ -36,7 +36,7 @@ impl Part2 {
         let (_, (towels, patterns)) = parse_input(input).map_err(|e| e.to_owned())?;
         let game = Game::new(&towels);
 
-        Ok(patterns.iter().map(|p| game.design_count(&p)).sum::<u64>())
+        Ok(patterns.iter().map(|p| game.design_count(p)).sum::<u64>())
     }
 }
 

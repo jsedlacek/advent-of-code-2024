@@ -23,7 +23,7 @@ impl Game {
     pub fn iter(&self, guard: (Point, Direction)) -> impl Iterator<Item = (Point, Direction)> + '_ {
         let (mut pos, mut dir) = guard;
 
-        return std::iter::once(guard).chain(std::iter::from_fn(move || loop {
+        std::iter::once(guard).chain(std::iter::from_fn(move || loop {
             let new_pos = pos + dir;
 
             if !self.range.contains(new_pos) {
@@ -36,7 +36,7 @@ impl Game {
             }
 
             dir = dir.rotate_clockwise();
-        }));
+        }))
     }
 
     pub fn is_loop(&self, guard: (Point, Direction)) -> bool {

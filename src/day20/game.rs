@@ -21,7 +21,7 @@ impl Game {
         bfs(self.start, self.end, |pos| {
             Direction::all()
                 .map(move |direction| pos + direction)
-                .filter(|point| !self.walls.contains(&point))
+                .filter(|point| !self.walls.contains(point))
         })
     }
 
